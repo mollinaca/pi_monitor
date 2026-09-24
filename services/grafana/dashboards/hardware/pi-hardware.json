@@ -70,22 +70,22 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 85 } ] }, "unit": "percent" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "max": 125309444096, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 87716610867 }, { "color": "red", "value": 106013093094 } ] }, "unit": "decbytes" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
       "id": 5,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"})", "legendFormat": "microSD root /", "refId": "A" } ],
-      "title": "microSD root filesystem utilization",
+      "targets": [ { "expr": "node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}", "legendFormat": "used (of 125.3 GB)", "refId": "A" } ],
+      "title": "microSD root filesystem usage",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 85 } ] }, "unit": "percent" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "max": 1006962634752, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 704873844326 }, { "color": "red", "value": 855918239539 } ] }, "unit": "decbytes" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
       "id": 6,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"})", "legendFormat": "external SSD /mnt/data", "refId": "A" } ],
-      "title": "External SSD filesystem utilization",
+      "targets": [ { "expr": "node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"}", "legendFormat": "used (of 1.007 TB)", "refId": "A" } ],
+      "title": "External SSD filesystem usage",
       "type": "timeseries"
     },
     {
@@ -109,7 +109,27 @@
       "type": "timeseries"
     },
     {
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 39 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "Bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 39 },
+      "id": 21,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "rate(node_disk_written_bytes_total{job=\"raspberry-pi\",device=\"sda\"}[5m])", "legendFormat": "write", "refId": "A" }, { "expr": "rate(node_disk_read_bytes_total{job=\"raspberry-pi\",device=\"sda\"}[5m])", "legendFormat": "read", "refId": "B" } ],
+      "title": "External SSD I/O throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 39 },
+      "id": 22,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "100 * rate(node_disk_io_time_seconds_total{job=\"raspberry-pi\",device=\"sda\"}[5m])", "legendFormat": "external SSD busy", "refId": "A" } ],
+      "title": "External SSD I/O pressure",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 47 },
       "id": 9,
       "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Storage lifetime notes\n\n- **microSD:** consumer SD cards generally do not expose a standardized remaining-life or write-endurance counter. This dashboard therefore tracks root filesystem capacity, write/read trend, and I/O pressure as early-warning signals.\n- **External SSD:** SMART is available and will be added as a separate, low-frequency probe. SMART results and all Prometheus data are stored on `/mnt/data`, not on the microSD.\n- node_exporter reads kernel counters; its one-minute scrape does not itself write to the microSD.", "mode": "markdown" },
       "pluginVersion": "13.2.2",
@@ -119,7 +139,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" }, "mappings": [ { "options": { "0": { "color": "red", "text": "NG" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 47 },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 55 },
       "id": 12,
       "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "targets": [ { "expr": "home_ssd_smart_overall_passed{job=\"ssd-smart\"}", "legendFormat": "SMART", "refId": "A" } ],
@@ -129,7 +149,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 60 }, { "color": "red", "value": 70 } ] }, "unit": "celsius" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 47 },
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 55 },
       "id": 13,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "targets": [ { "expr": "home_ssd_smart_temperature_celsius{job=\"ssd-smart\"}", "legendFormat": "SSD", "refId": "A" } ],
@@ -139,7 +159,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 20 }, { "color": "green", "value": 50 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 47 },
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 55 },
       "id": 14,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "targets": [ { "expr": "home_ssd_smart_available_reserved_space_percent{job=\"ssd-smart\"}", "legendFormat": "vendor value", "refId": "A" } ],
@@ -149,7 +169,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 47 },
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 55 },
       "id": 15,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "targets": [ { "expr": "home_ssd_smart_error_log_entries{job=\"ssd-smart\"}", "legendFormat": "entries", "refId": "A" } ],
@@ -159,7 +179,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 54 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 62 },
       "id": 16,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "home_ssd_smart_reallocated_sectors{job=\"ssd-smart\"}", "legendFormat": "reallocated", "refId": "A" }, { "expr": "home_ssd_smart_pending_sectors{job=\"ssd-smart\"}", "legendFormat": "pending", "refId": "B" }, { "expr": "home_ssd_smart_offline_uncorrectable_sectors{job=\"ssd-smart\"}", "legendFormat": "uncorrectable", "refId": "C" }, { "expr": "home_ssd_smart_program_failures{job=\"ssd-smart\"}", "legendFormat": "program failures", "refId": "D" }, { "expr": "home_ssd_smart_erase_failures{job=\"ssd-smart\"}", "legendFormat": "erase failures", "refId": "E" }, { "expr": "home_ssd_smart_udma_crc_errors{job=\"ssd-smart\"}", "legendFormat": "CRC errors", "refId": "F" } ],
@@ -168,16 +188,36 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "short" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 54 },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "h" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 70 },
       "id": 17,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_ssd_smart_power_on_hours{job=\"ssd-smart\"}", "legendFormat": "power-on hours", "refId": "A" }, { "expr": "home_ssd_smart_power_cycle_count{job=\"ssd-smart\"}", "legendFormat": "power cycles", "refId": "B" }, { "expr": "home_ssd_smart_total_lbas_written_raw{job=\"ssd-smart\"}", "legendFormat": "total LBAs written (raw)", "refId": "C" } ],
-      "title": "External SSD SMART lifetime counters",
+      "targets": [ { "expr": "home_ssd_smart_power_on_hours{job=\"ssd-smart\"}", "legendFormat": "hours", "refId": "A" } ],
+      "title": "External SSD power-on hours",
       "type": "timeseries"
     },
     {
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 62 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 70 },
+      "id": 19,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_ssd_smart_power_cycle_count{job=\"ssd-smart\"}", "legendFormat": "cycles", "refId": "A" } ],
+      "title": "External SSD power cycles",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 70 },
+      "id": 20,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_ssd_smart_total_lbas_written_raw{job=\"ssd-smart\"}", "legendFormat": "raw counter", "refId": "A" } ],
+      "title": "External SSD Total LBAs written (raw)",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 78 },
       "id": 18,
       "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### SMART and lifetime interpretation\n\n- SMART health and error counters are **indicators**, not a guaranteed failure forecast. A drive can fail suddenly due to controller, USB, power, or other physical faults even when these values are normal. Keep backups of important data.\n- **Available reserved space** is a vendor-reported SMART value. It is not displayed as a predicted remaining lifetime.\n- **Total LBAs written (raw)** has an unverified vendor unit on this model, so it is retained only as a trend counter and is not converted to TB/TBW.\n- The SMART probe reads attributes once per day and does not start a self-test. A lifetime estimate, if ever added, must be explicitly marked as a prediction with its assumptions.", "mode": "markdown" },
       "pluginVersion": "13.2.2",
