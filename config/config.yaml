@@ -1,0 +1,40 @@
+metrics: true
+
+storage:
+  type: sqlite
+  path: /data/gatus.db
+
+endpoints:
+  - name: router
+    group: lan
+    url: "icmp://192.168.100.1"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+
+  - name: cloudflare-dns-ip
+    group: internet
+    url: "icmp://1.1.1.1"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+
+  - name: cloudflare-dns-query
+    group: internet
+    url: "1.1.1.1"
+    interval: 1m
+    dns:
+      query-name: "example.com"
+      query-type: "A"
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+      - "[BODY] == pat(*.*.*.*)"
+
+  - name: https-connectivity
+    group: internet
+    url: "https://example.com/"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CONNECTED] == true"
+

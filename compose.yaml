@@ -1,0 +1,20 @@
+name: home-network-monitor
+
+services:
+  gatus:
+    image: ghcr.io/twin/gatus:v5.36.0
+    container_name: network-monitor
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    cap_add:
+      - NET_RAW
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - ./config:/config:ro
+      - ./data:/data
+
