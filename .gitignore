@@ -1,8 +1,12 @@
 # Runtime data
 /data/
 /logs/
+/wifi-probe/.venv/
+__pycache__/
+*.pyc
 
 # Local secrets and overrides
 .env
 *.local.yaml
-
+/secrets/
+*_password.txt

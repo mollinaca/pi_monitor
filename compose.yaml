@@ -20,5 +20,5 @@ services:
         max-size: "10m"
         max-file: "3"
     volumes:
-      - ./config:/config:ro
-      - /mnt/data/pi_monitor/data:/data
+      - ./services/gatus:/config:ro
+      - /mnt/data/pi_monitor/data/gatus:/data
