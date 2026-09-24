@@ -20,18 +20,38 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 85 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisSoftMax": 100, "drawStyle": "line", "fillOpacity": 70, "lineWidth": 1, "pointSize": 4, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 7 },
+      "id": 11,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "100 * avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",mode!~\"guest|guest_nice\"}[5m]))", "legendFormat": "{{mode}}", "refId": "A" } ],
+      "title": "CPU time breakdown",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 70, "lineWidth": 1, "pointSize": 4, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } }, "unit": "bytes" }, "overrides": [ { "matcher": { "id": "byName", "options": "Total" }, "properties": [ { "id": "custom.stacking", "value": { "group": "A", "mode": "none" } }, { "id": "custom.fillOpacity", "value": 0 }, { "id": "custom.lineWidth", "value": 2 } ] } ] },
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 15 },
       "id": 2,
-      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
-      "targets": [ { "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"raspberry-pi\"} / node_memory_MemTotal_bytes{job=\"raspberry-pi\"})", "legendFormat": "Memory", "refId": "A" } ],
-      "title": "Memory utilization",
-      "type": "stat"
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "node_memory_MemFree_bytes{job=\"raspberry-pi\"}", "legendFormat": "Free", "refId": "A" }, { "expr": "node_memory_Buffers_bytes{job=\"raspberry-pi\"}", "legendFormat": "Buffers", "refId": "B" }, { "expr": "node_memory_Cached_bytes{job=\"raspberry-pi\"}", "legendFormat": "Cached", "refId": "C" }, { "expr": "node_memory_SReclaimable_bytes{job=\"raspberry-pi\"}", "legendFormat": "Reclaimable slab", "refId": "D" }, { "expr": "node_memory_MemTotal_bytes{job=\"raspberry-pi\"} - node_memory_MemFree_bytes{job=\"raspberry-pi\"} - node_memory_Buffers_bytes{job=\"raspberry-pi\"} - node_memory_Cached_bytes{job=\"raspberry-pi\"} - node_memory_SReclaimable_bytes{job=\"raspberry-pi\"}", "legendFormat": "Used (non-reclaimable)", "refId": "E" }, { "expr": "node_memory_MemTotal_bytes{job=\"raspberry-pi\"}", "legendFormat": "Total", "refId": "F" } ],
+      "title": "Physical memory breakdown",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 70, "lineWidth": 1, "pointSize": 4, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } }, "unit": "bytes" }, "overrides": [ { "matcher": { "id": "byName", "options": "Swap total" }, "properties": [ { "id": "custom.stacking", "value": { "group": "A", "mode": "none" } }, { "id": "custom.fillOpacity", "value": 0 }, { "id": "custom.lineWidth", "value": 2 } ] } ] },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 15 },
+      "id": 10,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "node_memory_SwapFree_bytes{job=\"raspberry-pi\"}", "legendFormat": "Swap free", "refId": "A" }, { "expr": "node_memory_SwapTotal_bytes{job=\"raspberry-pi\"} - node_memory_SwapFree_bytes{job=\"raspberry-pi\"}", "legendFormat": "Swap used", "refId": "B" }, { "expr": "node_memory_SwapTotal_bytes{job=\"raspberry-pi\"}", "legendFormat": "Swap total", "refId": "C" } ],
+      "title": "Swap breakdown",
+      "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 80 } ] }, "unit": "celsius" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 0 },
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 0 },
       "id": 3,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "targets": [ { "expr": "node_thermal_zone_temp{job=\"raspberry-pi\",type=\"cpu-thermal\"}", "legendFormat": "CPU", "refId": "A" } ],
@@ -41,7 +61,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "short" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 0 },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 },
       "id": 4,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "node_load1{job=\"raspberry-pi\"}", "legendFormat": "load 1m", "refId": "A" }, { "expr": "node_load5{job=\"raspberry-pi\"}", "legendFormat": "load 5m", "refId": "B" }, { "expr": "node_load15{job=\"raspberry-pi\"}", "legendFormat": "load 15m", "refId": "C" } ],
@@ -51,7 +71,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 85 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
       "id": 5,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"})", "legendFormat": "microSD root /", "refId": "A" } ],
@@ -61,7 +81,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 85 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
       "id": 6,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"})", "legendFormat": "external SSD /mnt/data", "refId": "A" } ],
@@ -71,7 +91,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "Bps" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
       "id": 7,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "rate(node_disk_written_bytes_total{job=\"raspberry-pi\",device=\"mmcblk0\"}[5m])", "legendFormat": "write", "refId": "A" }, { "expr": "rate(node_disk_read_bytes_total{job=\"raspberry-pi\",device=\"mmcblk0\"}[5m])", "legendFormat": "read", "refId": "B" } ],
@@ -81,7 +101,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 31 },
       "id": 8,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "100 * rate(node_disk_io_time_seconds_total{job=\"raspberry-pi\",device=\"mmcblk0\"}[5m])", "legendFormat": "microSD busy", "refId": "A" }, { "expr": "100 * avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",mode=\"iowait\"}[5m]))", "legendFormat": "CPU iowait", "refId": "B" } ],
@@ -89,7 +109,7 @@
       "type": "timeseries"
     },
     {
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 23 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 39 },
       "id": 9,
       "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Storage lifetime notes\n\n- **microSD:** consumer SD cards generally do not expose a standardized remaining-life or write-endurance counter. This dashboard therefore tracks root filesystem capacity, write/read trend, and I/O pressure as early-warning signals.\n- **External SSD:** SMART is available and will be added as a separate, low-frequency probe. SMART results and all Prometheus data are stored on `/mnt/data`, not on the microSD.\n- node_exporter reads kernel counters; its one-minute scrape does not itself write to the microSD.", "mode": "markdown" },
       "pluginVersion": "13.2.2",
