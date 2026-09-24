@@ -23,7 +23,7 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisSoftMax": 100, "drawStyle": "line", "fillOpacity": 70, "lineWidth": 1, "pointSize": 4, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } }, "unit": "percent" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 7 },
       "id": 11,
-      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "100 * avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",mode!~\"guest|guest_nice\"}[5m]))", "legendFormat": "{{mode}}", "refId": "A" } ],
       "title": "CPU time breakdown",
       "type": "timeseries"
@@ -33,7 +33,7 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "fillOpacity": 70, "lineWidth": 1, "pointSize": 4, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } }, "unit": "bytes" }, "overrides": [ { "matcher": { "id": "byName", "options": "Total" }, "properties": [ { "id": "custom.stacking", "value": { "group": "A", "mode": "none" } }, { "id": "custom.fillOpacity", "value": 0 }, { "id": "custom.lineWidth", "value": 2 } ] } ] },
       "gridPos": { "h": 8, "w": 16, "x": 0, "y": 15 },
       "id": 2,
-      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "node_memory_MemFree_bytes{job=\"raspberry-pi\"}", "legendFormat": "Free", "refId": "A" }, { "expr": "node_memory_Buffers_bytes{job=\"raspberry-pi\"}", "legendFormat": "Buffers", "refId": "B" }, { "expr": "node_memory_Cached_bytes{job=\"raspberry-pi\"}", "legendFormat": "Cached", "refId": "C" }, { "expr": "node_memory_SReclaimable_bytes{job=\"raspberry-pi\"}", "legendFormat": "Reclaimable slab", "refId": "D" }, { "expr": "node_memory_MemTotal_bytes{job=\"raspberry-pi\"} - node_memory_MemFree_bytes{job=\"raspberry-pi\"} - node_memory_Buffers_bytes{job=\"raspberry-pi\"} - node_memory_Cached_bytes{job=\"raspberry-pi\"} - node_memory_SReclaimable_bytes{job=\"raspberry-pi\"}", "legendFormat": "Used (non-reclaimable)", "refId": "E" }, { "expr": "node_memory_MemTotal_bytes{job=\"raspberry-pi\"}", "legendFormat": "Total", "refId": "F" } ],
       "title": "Physical memory breakdown",
       "type": "timeseries"
