@@ -1,0 +1,26 @@
+[project]
+name = "pi-wifi-probe"
+version = "0.1.0"
+description = "Wi-Fi quality probe for the home network monitor"
+requires-python = ">=3.11"
+dependencies = [
+    "prometheus-client>=0.22,<1",
+]
+
+[project.scripts]
+pi-wifi-probe = "pi_wifi_probe.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<10",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pi_wifi_probe"]

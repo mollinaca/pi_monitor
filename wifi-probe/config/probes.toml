@@ -1,0 +1,38 @@
+[probe]
+interface = "wlan0"
+management_interface = "eth0"
+country = "JP"
+gateway = "192.168.100.1"
+internet_target = "1.1.1.1"
+ping_count = 5
+ping_timeout_seconds = 2
+connect_timeout_seconds = 30
+route_table = 201
+route_rule_priority = 20100
+metrics_directory = "/mnt/data/pi_monitor/data/node-exporter/textfile"
+state_path = "/mnt/data/pi_monitor/data/wifi-probe/state.json"
+lock_path = "/run/lock/pi-wifi-probe.lock"
+
+[[targets]]
+id = "ap1_24"
+ap = "AP-1F"
+band = "2.4GHz"
+connection = "pi-monitor-ap1-24"
+
+[[targets]]
+id = "ap1_50"
+ap = "AP-1F"
+band = "5GHz"
+connection = "pi-monitor-ap1-50"
+
+[[targets]]
+id = "ap2_24"
+ap = "AP-2F"
+band = "2.4GHz"
+connection = "pi-monitor-ap2-24"
+
+[[targets]]
+id = "ap2_50"
+ap = "AP-2F"
+band = "5GHz"
+connection = "pi-monitor-ap2-50"

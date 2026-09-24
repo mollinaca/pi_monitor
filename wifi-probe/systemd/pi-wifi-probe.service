@@ -1,0 +1,19 @@
+[Unit]
+Description=Home Wi-Fi quality probe
+After=NetworkManager.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/mnt/data/pi_monitor/wifi-probe
+ExecStart=/mnt/data/pi_monitor/wifi-probe/.venv/bin/pi-wifi-probe --config /mnt/data/pi_monitor/wifi-probe/config/probes.toml
+Environment=PYTHONUNBUFFERED=1
+UMask=0022
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

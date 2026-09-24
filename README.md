@@ -10,7 +10,7 @@ Raspberry Pi (`192.168.100.201`) から、自宅LAN、Wi-Fi、インターネッ
 - Prometheus: 時系列データを保存
 - Grafana: Prometheusのデータを可視化
 
-現在はGatusのみ実装済みです。Wi-Fi probe、node_exporter、Prometheus、Grafanaは順次追加します。
+GatusとWi-Fi probeを実装済みです。node_exporter、Prometheus、Grafanaは順次追加します。
 
 ## ディレクトリ
 
@@ -22,7 +22,7 @@ pi_monitor/
 │   │   └── config.yaml
 │   ├── prometheus/             # 今後追加
 │   └── grafana/                # 今後追加
-├── wifi-probe/                 # 今後追加するホスト側Pythonプロジェクト
+├── wifi-probe/                 # ホスト側Pythonプロジェクト
 └── data/                       # 実行時データ。Git管理外
     ├── gatus/
     ├── prometheus/

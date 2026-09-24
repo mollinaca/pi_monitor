@@ -2,6 +2,7 @@
 /data/
 /logs/
 /wifi-probe/.venv/
+.pytest_cache/
 __pycache__/
 *.pyc
 

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the home Wi-Fi quality probe every five minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitInactiveSec=5min
+AccuracySec=15s
+Unit=pi-wifi-probe.service
+
+[Install]
+WantedBy=timers.target
