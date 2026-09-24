@@ -5,21 +5,21 @@ storage:
   path: /data/gatus.db
 
 endpoints:
-  - name: router
+  - name: ROUTER
     group: 01-LAN
     url: "icmp://192.168.100.1"
     interval: 30s
     conditions:
       - "[CONNECTED] == true"
 
-  - name: ap-1f-cisco-wap150
+  - name: AP-1F
     group: 01-LAN
     url: "icmp://192.168.100.246"
     interval: 30s
     conditions:
       - "[CONNECTED] == true"
 
-  - name: ap-2f-cisco-wap150
+  - name: AP-2F
     group: 01-LAN
     url: "icmp://192.168.100.247"
     interval: 30s
