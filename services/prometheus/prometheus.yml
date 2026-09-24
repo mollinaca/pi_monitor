@@ -32,7 +32,10 @@ scrape_configs:
         action: drop
 
   - job_name: ssd-smart
-    scrape_interval: 24h
+    # This reads the already-generated textfile only. The smartctl probe is
+    # still run by systemd once daily; five-minute scraping makes a manual
+    # validation visible promptly in Grafana without issuing SMART commands.
+    scrape_interval: 5m
     scrape_timeout: 15s
     static_configs:
       - targets:

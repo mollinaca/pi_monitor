@@ -138,7 +138,7 @@ Grafanaの`Pi Hardware`フォルダにある`Raspberry Pi Hardware`ダッシュ�
 
 microSDカードには、一般に残寿命や残書込み回数を示す標準的な取得方法がありません。このため、容量、書込み量、I/O待ち、I/O利用率を早期警戒のためのトレンドとして監視します。
 
-外部SSDのSMARTは、ホスト上の`ssd-smart-probe`が毎日03:17に読み取り専用で収集します。プローブはSMART自己テストを開始せず、結果を`data/node-exporter/textfile/ssd-smart.prom`へ出力します。PrometheusはSMARTメトリクスだけを専用の24時間ジョブで保存するため、日次値を1分ごとに重複保存しません。
+外部SSDのSMARTは、ホスト上の`ssd-smart-probe`が毎日03:17に読み取り専用で収集します。プローブはSMART自己テストを開始せず、結果を`data/node-exporter/textfile/ssd-smart.prom`へ出力します。PrometheusはSMARTメトリクスだけを専用の5分ジョブで読み込みますが、これは既に生成されたTextfileを読むだけであり、SMARTコマンドの実行頻度は日次のままです。手動試験の結果もGrafanaへ速やかに反映できます。
 
 初回導入後は、timerを有効化する前に手動で結果を確認します。
 
