@@ -6,55 +6,46 @@ storage:
 
 endpoints:
   - name: router
-    group: lan
+    group: 01-LAN
     url: "icmp://192.168.100.1"
     interval: 30s
     conditions:
       - "[CONNECTED] == true"
 
   - name: ap-1f-cisco-wap150
-    group: lan
+    group: 01-LAN
     url: "icmp://192.168.100.246"
     interval: 30s
     conditions:
       - "[CONNECTED] == true"
 
   - name: ap-2f-cisco-wap150
-    group: lan
+    group: 01-LAN
     url: "icmp://192.168.100.247"
     interval: 30s
     conditions:
       - "[CONNECTED] == true"
 
   - name: cloudflare-dns-ip
-    group: internet
+    group: 02-INTERNET
     url: "icmp://1.1.1.1"
     interval: 5m
     conditions:
       - "[CONNECTED] == true"
 
   - name: cloudflare-dns-query
-    group: internet
+    group: 02-INTERNET
     url: "1.1.1.1"
     interval: 5m
     dns:
-      query-name: "example.com"
+      query-name: "google.com"
       query-type: "A"
     conditions:
       - "[DNS_RCODE] == NOERROR"
       - "[BODY] == pat(*.*.*.*)"
 
-  - name: https-connectivity
-    group: internet
-    url: "https://example.com/"
-    interval: 5m
-    method: HEAD
-    conditions:
-      - "[STATUS] == 200"
-      - "[CONNECTED] == true"
-
   - name: yahoo-japan
-    group: internet-web
+    group: 02-INTERNET
     url: "https://www.yahoo.co.jp/"
     interval: 5m
     method: HEAD
@@ -63,7 +54,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: google
-    group: internet-web
+    group: 02-INTERNET
     url: "https://www.google.com/"
     interval: 5m
     method: HEAD
@@ -75,7 +66,7 @@ endpoints:
   # Requesting one byte verifies DNS, TCP, TLS, and HTTP without downloading
   # the 100 MB test file.
   - name: us-west-hillsboro
-    group: internet-regional
+    group: 02-INTERNET
     url: "https://hil-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
@@ -85,7 +76,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: us-east-ashburn
-    group: internet-regional
+    group: 02-INTERNET
     url: "https://ash-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
@@ -95,7 +86,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: eu-central-falkenstein
-    group: internet-regional
+    group: 02-INTERNET
     url: "https://fsn1-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
@@ -105,7 +96,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: eu-north-helsinki
-    group: internet-regional
+    group: 02-INTERNET
     url: "https://hel1-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
@@ -115,7 +106,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: asia-southeast-singapore
-    group: internet-regional
+    group: 02-INTERNET
     url: "https://sin-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
