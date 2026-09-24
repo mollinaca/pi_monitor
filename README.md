@@ -76,9 +76,9 @@ cd /mnt/data/pi_monitor
 sudo ./scripts/prepare-container-storage.sh
 ```
 
-Grafanaも同じスクリプトで準備します。初回だけ、Pi上のroot専用ディレクトリ
-`/root/.config/pi_monitor/grafana_admin_password` にランダムな管理者パスワードを生成します。
-このファイルはGit管理せず、表示も出力もしません。
+Grafanaの管理者パスワードは、Grafanaの永続DB
+`/mnt/data/pi_monitor/data/grafana` 内で管理します。外部のパスワードファイルは使用しません。
+新しいGrafana DBで初回起動した場合は、初回ログイン後すぐに管理者パスワードを変更してください。
 
 ## 起動と停止
 
@@ -124,8 +124,7 @@ ssh -i ../.ssh/codex-ai_SSHKEY -L 9090:127.0.0.1:9090 root@192.168.100.201
 その後、作業端末のブラウザで `http://127.0.0.1:9090/targets` を開きます。
 
 GrafanaはLAN向けにポート3001で公開します。Prometheusをコード管理されたデータソースとして登録し、
-Wi-Fi品質ダッシュボードを初期表示します。ログインにはユーザー名`admin`と、Piの
-`/root/.config/pi_monitor/grafana_admin_password` に保管したパスワードを使用します。
+Wi-Fi品質ダッシュボードを初期表示します。ログインには、GrafanaのDBに設定済みの管理者認証情報を使用します。
 
 ## データ保存
 
