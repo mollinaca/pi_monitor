@@ -24,6 +24,8 @@ pi_monitor/
 │   │   └── prometheus.yml
 │   └── grafana/
 │       ├── dashboards/
+│       │   ├── gatus/gatus-health.json
+│       │   └── wifi/wifi-quality.json
 │       └── provisioning/
 ├── wifi-probe/                 # ホスト側Pythonプロジェクト
 └── data/                       # 実行時データ。Git管理外
