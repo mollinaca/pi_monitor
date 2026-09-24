@@ -10,7 +10,7 @@ Raspberry Pi (`192.168.100.201`) から、自宅LAN、Wi-Fi、インターネッ
 - Prometheus: node_exporterを30秒ごとに収集し、時系列データを保存
 - Grafana: Prometheusのデータを可視化
 
-Gatus、Wi-Fi probe、node_exporter、Prometheus、Grafanaを実装済みです。
+Gatus、Wi-Fi probe、node_exporter、Prometheus、Grafanaを実装済みです。Prometheusはnode_exporterとGatusを収集します。
 
 ## ディレクトリ
 

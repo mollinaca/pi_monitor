@@ -21,3 +21,8 @@ scrape_configs:
           - node-exporter:9100
         labels:
           host: raspberry-pi
+
+  - job_name: gatus
+    static_configs:
+      - targets:
+          - gatus:8080
