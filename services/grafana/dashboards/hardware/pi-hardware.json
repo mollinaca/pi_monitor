@@ -1,0 +1,110 @@
+{
+  "annotations": { "list": [] },
+  "description": "Raspberry Pi host, microSD root filesystem, and external SSD monitoring. Host metrics are collected once per minute. microSD cards do not provide a standardized remaining-life value, so its capacity and I/O trend are shown instead.",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 85 } ] }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
+      "targets": [ { "expr": "100 * (1 - avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",mode=\"idle\"}[5m])))", "legendFormat": "CPU", "refId": "A" } ],
+      "title": "CPU utilization",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 85 } ] }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
+      "targets": [ { "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"raspberry-pi\"} / node_memory_MemTotal_bytes{job=\"raspberry-pi\"})", "legendFormat": "Memory", "refId": "A" } ],
+      "title": "Memory utilization",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 80 } ] }, "unit": "celsius" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
+      "targets": [ { "expr": "node_thermal_zone_temp{job=\"raspberry-pi\",type=\"cpu-thermal\"}", "legendFormat": "CPU", "refId": "A" } ],
+      "title": "CPU temperature",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "node_load1{job=\"raspberry-pi\"}", "legendFormat": "load 1m", "refId": "A" }, { "expr": "node_load5{job=\"raspberry-pi\"}", "legendFormat": "load 5m", "refId": "B" }, { "expr": "node_load15{job=\"raspberry-pi\"}", "legendFormat": "load 15m", "refId": "C" } ],
+      "title": "System load",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 85 } ] }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+      "id": 5,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"})", "legendFormat": "microSD root /", "refId": "A" } ],
+      "title": "microSD root filesystem utilization",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 85 } ] }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+      "id": 6,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"})", "legendFormat": "external SSD /mnt/data", "refId": "A" } ],
+      "title": "External SSD filesystem utilization",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "Bps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "id": 7,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "rate(node_disk_written_bytes_total{job=\"raspberry-pi\",device=\"mmcblk0\"}[5m])", "legendFormat": "write", "refId": "A" }, { "expr": "rate(node_disk_read_bytes_total{job=\"raspberry-pi\",device=\"mmcblk0\"}[5m])", "legendFormat": "read", "refId": "B" } ],
+      "title": "microSD I/O throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "id": 8,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "100 * rate(node_disk_io_time_seconds_total{job=\"raspberry-pi\",device=\"mmcblk0\"}[5m])", "legendFormat": "microSD busy", "refId": "A" }, { "expr": "100 * avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",mode=\"iowait\"}[5m]))", "legendFormat": "CPU iowait", "refId": "B" } ],
+      "title": "microSD I/O pressure",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 23 },
+      "id": 9,
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Storage lifetime notes\n\n- **microSD:** consumer SD cards generally do not expose a standardized remaining-life or write-endurance counter. This dashboard therefore tracks root filesystem capacity, write/read trend, and I/O pressure as early-warning signals.\n- **External SSD:** SMART is available and will be added as a separate, low-frequency probe. SMART results and all Prometheus data are stored on `/mnt/data`, not on the microSD.\n- node_exporter reads kernel counters; its one-minute scrape does not itself write to the microSD.", "mode": "markdown" },
+      "pluginVersion": "13.2.2",
+      "title": "About storage monitoring",
+      "type": "text"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 42,
+  "tags": [ "hardware", "storage", "raspberry-pi" ],
+  "templating": { "list": [] },
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Raspberry Pi Hardware",
+  "uid": "raspberry-pi-hardware",
+  "version": 1
+}

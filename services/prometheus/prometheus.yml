@@ -16,6 +16,9 @@ scrape_configs:
           - localhost:9090
 
   - job_name: raspberry-pi
+    # Host and storage metrics are low-churn kernel counters.  One-minute
+    # collection is sufficient and avoids retaining unnecessary samples.
+    scrape_interval: 1m
     static_configs:
       - targets:
           - node-exporter:9100

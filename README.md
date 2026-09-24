@@ -7,7 +7,7 @@ Raspberry Pi (`192.168.100.201`) から、自宅LAN、Wi-Fi、インターネッ
 - Gatus: LANとインターネットのヘルスダッシュボード
 - Wi-Fi probe: AP・周波数帯ごとの無線品質をホスト上で測定
 - node_exporter: Wi-Fi probeの測定値とホストメトリクスを公開
-- Prometheus: node_exporterを30秒ごとに収集し、時系列データを保存
+- Prometheus: Gatusを30秒ごと、Piのnode_exporterを1分ごとに収集し、時系列データを保存
 - Grafana: Prometheusのデータを可視化
 
 Gatus、Wi-Fi probe、node_exporter、Prometheus、Grafanaを実装済みです。Prometheusはnode_exporterとGatusを収集します。
@@ -25,6 +25,7 @@ pi_monitor/
 │   └── grafana/
 │       ├── dashboards/
 │       │   ├── gatus/gatus-health.json
+│       │   ├── hardware/pi-hardware.json
 │       │   └── wifi/wifi-quality.json
 │       └── provisioning/
 ├── wifi-probe/                 # ホスト側Pythonプロジェクト
@@ -126,7 +127,15 @@ ssh -i ../.ssh/codex-ai_SSHKEY -L 9090:127.0.0.1:9090 root@192.168.100.201
 その後、作業端末のブラウザで `http://127.0.0.1:9090/targets` を開きます。
 
 GrafanaはLAN向けにポート3001で公開します。Prometheusをコード管理されたデータソースとして登録し、
-Wi-Fi品質ダッシュボードを初期表示します。ログインには、GrafanaのDBに設定済みの管理者認証情報を使用します。
+Wi-Fi品質、Gatus Health、Pi Hardwareのダッシュボードを提供します。ログインには、GrafanaのDBに設定済みの管理者認証情報を使用します。
+
+## Pi本体とストレージの監視
+
+PiのCPU使用率、load、メモリ使用率、CPU温度、root filesystemと外部SSDの使用率、microSDのI/O量・I/O圧力は、node_exporterの標準メトリクスで収集します。`raspberry-pi`ジョブの収集間隔は1分です。これはカーネルカウンタを読み取るだけで、収集自体はmicroSDへ書き込みません。
+
+Grafanaの`Pi Hardware`フォルダにある`Raspberry Pi Hardware`ダッシュボードで確認できます。
+
+microSDカードには、一般に残寿命や残書込み回数を示す標準的な取得方法がありません。このため、容量、書込み量、I/O待ち、I/O利用率を早期警戒のためのトレンドとして監視します。SMART対応の外部SSDの寿命属性は、SMART専用の低頻度プローブとして別途追加します。
 
 ## データ保存
 

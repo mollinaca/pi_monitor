@@ -22,3 +22,14 @@ providers:
     allowUiUpdates: false
     options:
       path: /var/lib/grafana/dashboards/gatus
+
+  - name: pi-hardware
+    orgId: 1
+    folder: Pi Hardware
+    folderUid: pi-hardware
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards/hardware
