@@ -10,7 +10,7 @@ Raspberry Pi (`192.168.100.201`) から、自宅LAN、Wi-Fi、インターネッ
 - Prometheus: node_exporterを30秒ごとに収集し、時系列データを保存
 - Grafana: Prometheusのデータを可視化
 
-Gatus、Wi-Fi probe、node_exporter、Prometheusを実装済みです。Grafanaは次に追加します。
+Gatus、Wi-Fi probe、node_exporter、Prometheus、Grafanaを実装済みです。
 
 ## ディレクトリ
 
@@ -22,7 +22,9 @@ pi_monitor/
 │   │   └── config.yaml
 │   ├── prometheus/
 │   │   └── prometheus.yml
-│   └── grafana/                # 今後追加
+│   └── grafana/
+│       ├── dashboards/
+│       └── provisioning/
 ├── wifi-probe/                 # ホスト側Pythonプロジェクト
 └── data/                       # 実行時データ。Git管理外
     ├── gatus/
@@ -74,6 +76,10 @@ cd /mnt/data/pi_monitor
 sudo ./scripts/prepare-container-storage.sh
 ```
 
+Grafanaも同じスクリプトで準備します。初回だけ、Pi上のroot専用ディレクトリ
+`/root/.config/pi_monitor/grafana_admin_password` にランダムな管理者パスワードを生成します。
+このファイルはGit管理せず、表示も出力もしません。
+
 ## 起動と停止
 
 ```bash
@@ -101,6 +107,7 @@ curl http://127.0.0.1:9100/metrics
 
 ```text
 http://192.168.100.201:8080/
+http://192.168.100.201:3001/
 ```
 
 node_exporterのポート9100はPi自身のlocalhostだけに公開します。Wi-Fi probeが生成した
@@ -116,16 +123,21 @@ ssh -i ../.ssh/codex-ai_SSHKEY -L 9090:127.0.0.1:9090 root@192.168.100.201
 
 その後、作業端末のブラウザで `http://127.0.0.1:9090/targets` を開きます。
 
+GrafanaはLAN向けにポート3001で公開します。Prometheusをコード管理されたデータソースとして登録し、
+Wi-Fi品質ダッシュボードを初期表示します。ログインにはユーザー名`admin`と、Piの
+`/root/.config/pi_monitor/grafana_admin_password` に保管したパスワードを使用します。
+
 ## データ保存
 
 実行時データはすべて外部ストレージ上の `/mnt/data/pi_monitor/data` 以下へ保存し、Gitでは管理しません。Dockerコンテナのログは `local` ドライバーで1ファイル10MB、最大3ファイルに制限しています。
 
 Prometheusの時系列データは `/mnt/data/pi_monitor/data/prometheus` に保存し、2年または10GBのうち先に到達した上限で古いデータを削除します。
+Grafanaの設定DBは `/mnt/data/pi_monitor/data/grafana` に保存します。
 
 Dockerイメージ自体は、現在のホスト共通設定に従って `/var/lib/docker` に保存されます。この保存先の変更は既存コンテナ全体に影響するため、本プロジェクトでは扱いません。
 
 ## セキュリティ上の前提
 
-GatusのWeb UIは認証なしでポート8080に公開します。ルーター側でポート転送せず、信頼できるLAN内だけから利用してください。node_exporterのポート9100とPrometheusのポート9090はLANへ公開しません。
+GatusのWeb UIは認証なしでポート8080に公開します。GrafanaのWeb UIはポート3001で認証付き公開です。ルーター側でポート転送せず、信頼できるLAN内だけから利用してください。node_exporterのポート9100とPrometheusのポート9090はLANへ公開しません。
 
 SSID、BSSID、Wi-Fiパスワードなどの無線識別情報と認証情報はGitへ保存しません。Wi-Fi接続情報はPi上のNetworkManagerプロファイルで管理します。
