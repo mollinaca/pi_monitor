@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the external SSD SMART metrics probe daily
+
+[Timer]
+OnCalendar=*-*-* 03:17:00
+Persistent=true
+AccuracySec=1min
+Unit=pi-ssd-smart-probe.service
+
+[Install]
+WantedBy=timers.target

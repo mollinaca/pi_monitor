@@ -1,0 +1,15 @@
+[Unit]
+Description=External SSD SMART metrics probe
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/mnt/data/pi_monitor/ssd-smart-probe
+ExecStart=/mnt/data/pi_monitor/ssd-smart-probe/.venv/bin/pi-ssd-smart-probe --config /mnt/data/pi_monitor/ssd-smart-probe/config/probe.toml
+Environment=PYTHONUNBUFFERED=1
+UMask=0022
+Nice=19
+IOSchedulingClass=idle
+NoNewPrivileges=true

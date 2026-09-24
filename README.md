@@ -28,6 +28,7 @@ pi_monitor/
 │       │   ├── hardware/pi-hardware.json
 │       │   └── wifi/wifi-quality.json
 │       └── provisioning/
+├── ssd-smart-probe/            # ホスト側、日次の外部SSD SMARTプローブ
 ├── wifi-probe/                 # ホスト側Pythonプロジェクト
 └── data/                       # 実行時データ。Git管理外
     ├── gatus/
@@ -135,7 +136,22 @@ PiのCPU使用率、load、メモリ使用率、CPU温度、root filesystemと�
 
 Grafanaの`Pi Hardware`フォルダにある`Raspberry Pi Hardware`ダッシュボードで確認できます。
 
-microSDカードには、一般に残寿命や残書込み回数を示す標準的な取得方法がありません。このため、容量、書込み量、I/O待ち、I/O利用率を早期警戒のためのトレンドとして監視します。SMART対応の外部SSDの寿命属性は、SMART専用の低頻度プローブとして別途追加します。
+microSDカードには、一般に残寿命や残書込み回数を示す標準的な取得方法がありません。このため、容量、書込み量、I/O待ち、I/O利用率を早期警戒のためのトレンドとして監視します。
+
+外部SSDのSMARTは、ホスト上の`ssd-smart-probe`が毎日03:17に読み取り専用で収集します。プローブはSMART自己テストを開始せず、結果を`data/node-exporter/textfile/ssd-smart.prom`へ出力します。PrometheusはSMARTメトリクスだけを専用の24時間ジョブで保存するため、日次値を1分ごとに重複保存しません。
+
+初回導入後は、timerを有効化する前に手動で結果を確認します。
+
+```bash
+cd /mnt/data/pi_monitor
+sudo ./scripts/install-ssd-smart-probe.sh
+sudo systemctl start pi-ssd-smart-probe.service
+journalctl -u pi-ssd-smart-probe.service -n 50 --no-pager
+curl -fsS http://127.0.0.1:9100/metrics | grep '^home_ssd_smart_'
+sudo systemctl enable --now pi-ssd-smart-probe.timer
+```
+
+SMARTの健康状態や残予備領域は故障時期を保証せず、残寿命の予測でもありません。USB接続、電源、コントローラ、物理的な故障などにより、SMARTが正常でも突然故障することがあります。重要なデータは監視とは別にバックアップしてください。実機の`Total_LBAs_Written`は単位が確認できないため、生値のトレンドとしてのみ表示し、TB/TBWや残寿命に換算しません。
 
 ## データ保存
 

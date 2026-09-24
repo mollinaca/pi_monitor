@@ -24,6 +24,26 @@ scrape_configs:
           - node-exporter:9100
         labels:
           host: raspberry-pi
+    # SMART is collected daily by a dedicated job below. Do not store the
+    # unchanged textfile metrics every minute with the host metrics.
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: home_ssd_smart_.+
+        action: drop
+
+  - job_name: ssd-smart
+    scrape_interval: 24h
+    scrape_timeout: 15s
+    static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          host: raspberry-pi
+    # Keep this low-frequency job focused on the SMART textfile only.
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: home_ssd_smart_.+
+        action: keep
 
   - job_name: gatus
     static_configs:

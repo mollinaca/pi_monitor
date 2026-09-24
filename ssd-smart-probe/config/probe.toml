@@ -1,0 +1,6 @@
+[probe]
+# This device and SAT transport were verified on the Pi's USB-attached ESD-EMA.
+device = "/dev/sda"
+device_type = "sat"
+metrics_directory = "/mnt/data/pi_monitor/data/node-exporter/textfile"
+metrics_filename = "ssd-smart.prom"
