@@ -12,17 +12,31 @@ endpoints:
     conditions:
       - "[CONNECTED] == true"
 
+  - name: ap-1f-cisco-wap150
+    group: lan
+    url: "icmp://192.168.100.246"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+
+  - name: ap-2f-cisco-wap150
+    group: lan
+    url: "icmp://192.168.100.247"
+    interval: 30s
+    conditions:
+      - "[CONNECTED] == true"
+
   - name: cloudflare-dns-ip
     group: internet
     url: "icmp://1.1.1.1"
-    interval: 30s
+    interval: 5m
     conditions:
       - "[CONNECTED] == true"
 
   - name: cloudflare-dns-query
     group: internet
     url: "1.1.1.1"
-    interval: 1m
+    interval: 5m
     dns:
       query-name: "example.com"
       query-type: "A"
@@ -33,8 +47,79 @@ endpoints:
   - name: https-connectivity
     group: internet
     url: "https://example.com/"
-    interval: 1m
+    interval: 5m
+    method: HEAD
     conditions:
       - "[STATUS] == 200"
       - "[CONNECTED] == true"
 
+  - name: yahoo-japan
+    group: internet-web
+    url: "https://www.yahoo.co.jp/"
+    interval: 5m
+    method: HEAD
+    conditions:
+      - "[STATUS] == 200"
+      - "[CONNECTED] == true"
+
+  - name: google
+    group: internet-web
+    url: "https://www.google.com/"
+    interval: 5m
+    method: HEAD
+    conditions:
+      - "[STATUS] == 200"
+      - "[CONNECTED] == true"
+
+  # Hetzner's regional speed-test hosts resolve to location-specific servers.
+  # Requesting one byte verifies DNS, TCP, TLS, and HTTP without downloading
+  # the 100 MB test file.
+  - name: us-west-hillsboro
+    group: internet-regional
+    url: "https://hil-speed.hetzner.com/100MB.bin"
+    interval: 5m
+    headers:
+      Range: "bytes=0-0"
+    conditions:
+      - "[STATUS] == 206"
+      - "[CONNECTED] == true"
+
+  - name: us-east-ashburn
+    group: internet-regional
+    url: "https://ash-speed.hetzner.com/100MB.bin"
+    interval: 5m
+    headers:
+      Range: "bytes=0-0"
+    conditions:
+      - "[STATUS] == 206"
+      - "[CONNECTED] == true"
+
+  - name: eu-central-falkenstein
+    group: internet-regional
+    url: "https://fsn1-speed.hetzner.com/100MB.bin"
+    interval: 5m
+    headers:
+      Range: "bytes=0-0"
+    conditions:
+      - "[STATUS] == 206"
+      - "[CONNECTED] == true"
+
+  - name: eu-north-helsinki
+    group: internet-regional
+    url: "https://hel1-speed.hetzner.com/100MB.bin"
+    interval: 5m
+    headers:
+      Range: "bytes=0-0"
+    conditions:
+      - "[STATUS] == 206"
+      - "[CONNECTED] == true"
+
+  - name: asia-southeast-singapore
+    group: internet-regional
+    url: "https://sin-speed.hetzner.com/100MB.bin"
+    interval: 5m
+    headers:
+      Range: "bytes=0-0"
+    conditions:
+      - "[STATUS] == 206"
+      - "[CONNECTED] == true"

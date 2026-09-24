@@ -6,12 +6,20 @@ Raspberry Pi (`192.168.100.201`) から、自宅LANとインターネットへ�
 
 [Gatus](https://github.com/TwiN/gatus) を使用します。監視対象と判定条件をYAMLで管理でき、単一のDockerコンテナでWeb UI、履歴、ICMP/DNS/HTTP/TCP監視、Prometheus形式のメトリクスを提供します。
 
-現時点では、次の4項目を監視します。
+現時点では、次の項目を監視します。
 
 - ルーター (`192.168.100.1`) へのICMP到達性
+- 1FのCisco WAP150 (`192.168.100.246`) へのICMP到達性
+- 2FのCisco WAP150 (`192.168.100.247`) へのICMP到達性
 - 外部IP (`1.1.1.1`) へのICMP到達性
 - Cloudflare DNS (`1.1.1.1`) による名前解決
 - `https://example.com/` へのHTTPS到達性
+- Yahoo JapanとGoogleへのHTTPS到達性
+- 米国西岸（Hillsboro）・米国東岸（Ashburn）へのHTTPS到達性
+- 欧州中央（Falkenstein）・欧州北部（Helsinki）へのHTTPS到達性
+- 東南アジア（Singapore）へのHTTPS到達性
+
+LAN内のルーターは30秒間隔、インターネット上の対象は5分間隔で監視します。地域別監視ではHetznerの地域別テストホストへRangeリクエストを送り、100MBファイル全体ではなく1バイトだけを取得します。
 
 監視履歴は外部ストレージ上の `/mnt/data/pi_monitor/data/gatus.db` に保存されます。実行時データはGit管理しません。
 
