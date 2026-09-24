@@ -179,7 +179,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 62 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 62 },
       "id": 16,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "home_ssd_smart_reallocated_sectors{job=\"ssd-smart\"}", "legendFormat": "reallocated", "refId": "A" }, { "expr": "home_ssd_smart_pending_sectors{job=\"ssd-smart\"}", "legendFormat": "pending", "refId": "B" }, { "expr": "home_ssd_smart_offline_uncorrectable_sectors{job=\"ssd-smart\"}", "legendFormat": "uncorrectable", "refId": "C" }, { "expr": "home_ssd_smart_program_failures{job=\"ssd-smart\"}", "legendFormat": "program failures", "refId": "D" }, { "expr": "home_ssd_smart_erase_failures{job=\"ssd-smart\"}", "legendFormat": "erase failures", "refId": "E" }, { "expr": "home_ssd_smart_udma_crc_errors{job=\"ssd-smart\"}", "legendFormat": "CRC errors", "refId": "F" } ],
