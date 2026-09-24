@@ -10,17 +10,17 @@
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "mappings": [ { "options": { "0": { "color": "red", "text": "Failed" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] }, "unit": "none" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [ { "options": { "0": { "color": "red", "text": "Failed" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] }, "unit": "none" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
       "id": 1,
-      "options": { "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "options": { "alignValue": "center", "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "mergeValues": true, "rowHeight": 0.9, "showValue": "always", "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "home_wifi_probe_success{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
       "title": "Probe success",
-      "type": "timeseries"
+      "type": "state-timeline"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "dBm" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisSoftMax": 0, "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "dBm" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
       "id": 2,
       "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
@@ -31,26 +31,46 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "Mbps" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 8 },
       "id": 3,
       "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_wifi_rx_bitrate_mbps{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}} RX", "refId": "A" }, { "expr": "home_wifi_tx_bitrate_mbps{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}} TX", "refId": "B" } ],
-      "title": "Link bitrate",
+      "targets": [ { "expr": "home_wifi_rx_bitrate_mbps{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
+      "title": "RX link bitrate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "Mbps" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 8 },
+      "id": 9,
+      "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_wifi_tx_bitrate_mbps{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
+      "title": "TX link bitrate",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
       "id": 4,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_wifi_gateway_latency_seconds{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}} gateway", "refId": "A" }, { "expr": "home_wifi_internet_latency_seconds{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}} internet", "refId": "B" } ],
-      "title": "Ping latency",
+      "targets": [ { "expr": "home_wifi_gateway_latency_seconds{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
+      "title": "Gateway ping latency (192.168.100.1)",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "percentunit" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 8 },
+      "id": 10,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_wifi_internet_latency_seconds{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
+      "title": "Internet ping latency (1.1.1.1)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisSoftMax": 1, "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "percentunit" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
       "id": 5,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
@@ -61,32 +81,60 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 16 },
       "id": 6,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_wifi_association_duration_seconds{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" }, { "expr": "home_wifi_probe_duration_seconds{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}} total", "refId": "B" } ],
-      "title": "Association and probe duration",
+      "targets": [ { "expr": "home_wifi_association_duration_seconds{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
+      "title": "Association duration",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 16 },
+      "id": 11,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_wifi_probe_duration_seconds{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
+      "title": "Total probe duration",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 24 },
+      "id": 12,
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Duration metrics\n\n- **Association duration**: Wi-Fi接続、認証、DHCPによるIPアドレス取得までの時間です。\n- **Total probe duration**: Associationに加え、Wi-Fi用ルーティング設定、gatewayとinternetへのping、無線情報取得、後片付けまでを含む測定全体の時間です。\n\nAssociationだけが長い場合は接続・認証・DHCP側を、Totalだけが長い場合はpingなど接続後の処理を確認する手がかりになります。", "mode": "markdown" },
+      "pluginVersion": "13.2.2",
+      "title": "About duration metrics",
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 29 },
       "id": 7,
-      "options": { "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "options": { "alignValue": "center", "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "mergeValues": true, "rowHeight": 0.9, "showValue": "always", "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "home_wifi_channel{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
-      "title": "Wi-Fi channel",
-      "type": "timeseries"
+      "title": "Wi-Fi channel history",
+      "type": "state-timeline"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "MHz" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "MHz" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 29 },
       "id": 8,
-      "options": { "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_wifi_frequency_mhz{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
-      "title": "Wi-Fi frequency",
-      "type": "timeseries"
+      "options": { "alignValue": "center", "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "mergeValues": true, "rowHeight": 0.9, "showValue": "always", "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_wifi_frequency_mhz{target=~\"$target\", band=\"2.4GHz\"}", "legendFormat": "{{ap}}", "refId": "A" } ],
+      "title": "2.4 GHz frequency history",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "MHz" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 29 },
+      "id": 13,
+      "options": { "alignValue": "center", "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "mergeValues": true, "rowHeight": 0.9, "showValue": "always", "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_wifi_frequency_mhz{target=~\"$target\", band=\"5GHz\"}", "legendFormat": "{{ap}}", "refId": "A" } ],
+      "title": "5 GHz frequency history",
+      "type": "state-timeline"
     }
   ],
   "refresh": "5m",
