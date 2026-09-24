@@ -38,7 +38,8 @@ sudo /mnt/data/pi_monitor/wifi-probe/.venv/bin/pi-wifi-probe \
   --all
 ```
 
-オプションを指定しなければ、状態ファイルを使って毎回1系統ずつローテーションします。
+手動実行でオプションを指定しなければ、状態ファイルを使って毎回1系統ずつローテーションします。
+systemd timerからの定期実行では`--all`を指定し、毎回すべての系統を順番に測定します。
 
 ```bash
 sudo /mnt/data/pi_monitor/wifi-probe/.venv/bin/pi-wifi-probe \
@@ -55,7 +56,8 @@ systemctl list-timers pi-wifi-probe.timer
 journalctl -u pi-wifi-probe.service -n 100 --no-pager
 ```
 
-通常実行は5分ごとに1系統を測定するため、各系統の測定間隔はおよそ20分です。
+systemd timerは5分ごとにすべての系統を順番に測定するため、各系統の測定開始はおよそ5分ごとです。
+4系統は同時ではなく順番に接続するため、1回の測定内では数十秒のずれがあります。
 
 ## 出力
 

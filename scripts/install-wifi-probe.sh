@@ -23,6 +23,9 @@ uv sync --locked --no-dev
 install -m 0644 systemd/pi-wifi-probe.service /etc/systemd/system/
 install -m 0644 systemd/pi-wifi-probe.timer /etc/systemd/system/
 systemctl daemon-reload
+if systemctl is-active --quiet pi-wifi-probe.timer; then
+    systemctl restart pi-wifi-probe.timer
+fi
 
 echo "Wi-Fi probe installed."
 echo "Validate it before enabling the timer:"

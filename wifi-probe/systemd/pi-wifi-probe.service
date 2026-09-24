@@ -1,5 +1,5 @@
 [Unit]
-Description=Home Wi-Fi quality probe
+Description=Home Wi-Fi quality probe for every configured target
 After=NetworkManager.service network-online.target
 Wants=network-online.target
 
@@ -8,7 +8,7 @@ Type=oneshot
 User=root
 Group=root
 WorkingDirectory=/mnt/data/pi_monitor/wifi-probe
-ExecStart=/mnt/data/pi_monitor/wifi-probe/.venv/bin/pi-wifi-probe --config /mnt/data/pi_monitor/wifi-probe/config/probes.toml
+ExecStart=/mnt/data/pi_monitor/wifi-probe/.venv/bin/pi-wifi-probe --config /mnt/data/pi_monitor/wifi-probe/config/probes.toml --all
 Environment=PYTHONUNBUFFERED=1
 UMask=0022
 Nice=10
