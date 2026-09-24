@@ -7,10 +7,10 @@ Raspberry Pi (`192.168.100.201`) から、自宅LAN、Wi-Fi、インターネッ
 - Gatus: LANとインターネットのヘルスダッシュボード
 - Wi-Fi probe: AP・周波数帯ごとの無線品質をホスト上で測定
 - node_exporter: Wi-Fi probeの測定値とホストメトリクスを公開
-- Prometheus: 時系列データを保存
+- Prometheus: node_exporterを30秒ごとに収集し、時系列データを保存
 - Grafana: Prometheusのデータを可視化
 
-GatusとWi-Fi probeを実装済みです。node_exporter、Prometheus、Grafanaは順次追加します。
+Gatus、Wi-Fi probe、node_exporter、Prometheusを実装済みです。Grafanaは次に追加します。
 
 ## ディレクトリ
 
@@ -20,7 +20,8 @@ pi_monitor/
 ├── services/
 │   ├── gatus/
 │   │   └── config.yaml
-│   ├── prometheus/             # 今後追加
+│   ├── prometheus/
+│   │   └── prometheus.yml
 │   └── grafana/                # 今後追加
 ├── wifi-probe/                 # ホスト側Pythonプロジェクト
 └── data/                       # 実行時データ。Git管理外
@@ -64,6 +65,15 @@ cd /mnt/data/pi_monitor
 git pull
 ```
 
+Prometheusを初めて起動する前に、外部ストレージのデータディレクトリを準備します。
+スクリプトはComposeで固定している公式イメージから実行UID/GIDを取得し、
+`/mnt/data/pi_monitor/data/prometheus` だけに所有者と権限を設定します。
+
+```bash
+cd /mnt/data/pi_monitor
+sudo ./scripts/prepare-container-storage.sh
+```
+
 ## 起動と停止
 
 ```bash
@@ -79,20 +89,43 @@ docker compose restart gatus
 docker compose logs --tail=100 gatus
 ```
 
+node_exporterだけを操作する場合:
+
+```bash
+docker compose restart node-exporter
+docker compose logs --tail=100 node-exporter
+curl http://127.0.0.1:9100/metrics
+```
+
 起動後は、LAN内のブラウザから以下へアクセスできます。
 
 ```text
 http://192.168.100.201:8080/
 ```
 
+node_exporterのポート9100はPi自身のlocalhostだけに公開します。Wi-Fi probeが生成した
+`data/node-exporter/textfile/*.prom` とPiのCPU、メモリ、ディスクなどのホスト指標を公開し、
+PrometheusからはCompose内部ネットワーク経由で収集します。
+
+Prometheusのポート9090もPi自身のlocalhostだけに公開します。SSHポートフォワードで
+一時的にUIを確認する場合は、作業端末で次を実行します。
+
+```bash
+ssh -i ../.ssh/codex-ai_SSHKEY -L 9090:127.0.0.1:9090 root@192.168.100.201
+```
+
+その後、作業端末のブラウザで `http://127.0.0.1:9090/targets` を開きます。
+
 ## データ保存
 
 実行時データはすべて外部ストレージ上の `/mnt/data/pi_monitor/data` 以下へ保存し、Gitでは管理しません。Dockerコンテナのログは `local` ドライバーで1ファイル10MB、最大3ファイルに制限しています。
+
+Prometheusの時系列データは `/mnt/data/pi_monitor/data/prometheus` に保存し、2年または10GBのうち先に到達した上限で古いデータを削除します。
 
 Dockerイメージ自体は、現在のホスト共通設定に従って `/var/lib/docker` に保存されます。この保存先の変更は既存コンテナ全体に影響するため、本プロジェクトでは扱いません。
 
 ## セキュリティ上の前提
 
-GatusのWeb UIは認証なしでポート8080に公開します。ルーター側でポート転送せず、信頼できるLAN内だけから利用してください。
+GatusのWeb UIは認証なしでポート8080に公開します。ルーター側でポート転送せず、信頼できるLAN内だけから利用してください。node_exporterのポート9100とPrometheusのポート9090はLANへ公開しません。
 
 SSID、BSSID、Wi-Fiパスワードなどの無線識別情報と認証情報はGitへ保存しません。Wi-Fi接続情報はPi上のNetworkManagerプロファイルで管理します。

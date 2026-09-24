@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 30s
+  scrape_timeout: 10s
+  evaluation_interval: 30s
+
+storage:
+  tsdb:
+    retention:
+      time: 2y
+      size: 10GB
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+
+  - job_name: raspberry-pi
+    static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          host: raspberry-pi
