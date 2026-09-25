@@ -443,7 +443,7 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
                         aggregate["data_rate_total"] / aggregate["data_rate_samples"]
                     )
         except (OSError, RuntimeError, ValueError, json.JSONDecodeError, WebDriverException) as exc:
-            print(f"AP web probe failed for {target.identifier}: {exc}", file=sys.stderr)
+            print(f"AP web probe failed for {target.identifier}: {type(exc).__name__}: {exc}", file=sys.stderr)
             success.labels(*values).set(0)
     write_to_textfile(str(settings.metrics_path), registry)
     # The probe runs as root to protect the AP credential, while node_exporter
