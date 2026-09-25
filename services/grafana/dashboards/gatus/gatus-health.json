@@ -41,7 +41,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 30 },
+      "gridPos": { "h": 9, "w": 8, "x": 0, "y": 30 },
       "id": 3,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "gatus_results_duration_seconds{group=\"01-LAN\", name=~\"$endpoint\"}", "legendFormat": "{{name}}", "refId": "A" } ],
@@ -51,17 +51,27 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 30 },
+      "gridPos": { "h": 9, "w": 8, "x": 8, "y": 30 },
       "id": 4,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "gatus_results_duration_seconds{group=~\"02-INTERNET_SERVICE|03-INTERNET_REGIONS\", name=~\"$endpoint\"}", "legendFormat": "{{group}} / {{name}}", "refId": "A" } ],
-      "title": "Internet response time (services and regions)",
+      "targets": [ { "expr": "gatus_results_duration_seconds{group=\"02-INTERNET_SERVICE\", name=~\"$endpoint\"}", "legendFormat": "{{name}}", "refId": "A" } ],
+      "title": "Internet service response time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 30 },
+      "id": 8,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "gatus_results_duration_seconds{group=\"03-INTERNET_REGIONS\", name=~\"$endpoint\"}", "legendFormat": "{{name}}", "refId": "A" } ],
+      "title": "Worldwide regional response time",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 3, "max": 100, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 99 }, { "color": "green", "value": 99.9 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 39 },
+      "gridPos": { "h": 9, "w": 8, "x": 8, "y": 39 },
       "id": 5,
       "options": { "displayMode": "gradient", "minVizWidth": 20, "minVizHeight": 16, "namePlacement": "left", "orientation": "horizontal", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showUnfilled": true, "sizing": "auto", "valueMode": "color" },
       "targets": [ { "expr": "avg_over_time(gatus_results_endpoint_success{group=\"02-INTERNET_SERVICE\", name=~\"$endpoint\"}[$__range]) * 100", "instant": true, "legendFormat": "{{name}}", "refId": "A" } ],
@@ -71,11 +81,21 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 3, "max": 100, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 99 }, { "color": "green", "value": 99.9 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 39 },
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 39 },
       "id": 7,
       "options": { "displayMode": "gradient", "minVizWidth": 20, "minVizHeight": 16, "namePlacement": "left", "orientation": "horizontal", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showUnfilled": true, "sizing": "auto", "valueMode": "color" },
       "targets": [ { "expr": "avg_over_time(gatus_results_endpoint_success{group=\"03-INTERNET_REGIONS\", name=~\"$endpoint\"}[$__range]) * 100", "instant": true, "legendFormat": "{{name}}", "refId": "A" } ],
       "title": "Worldwide regional availability over selected time range",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 3, "max": 100, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 99 }, { "color": "green", "value": 99.9 } ] }, "unit": "percent" }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 8, "x": 0, "y": 39 },
+      "id": 9,
+      "options": { "displayMode": "gradient", "minVizWidth": 20, "minVizHeight": 16, "namePlacement": "left", "orientation": "horizontal", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showUnfilled": true, "sizing": "auto", "valueMode": "color" },
+      "targets": [ { "expr": "avg_over_time(gatus_results_endpoint_success{group=\"01-LAN\", name=~\"$endpoint\"}[$__range]) * 100", "instant": true, "legendFormat": "{{name}}", "refId": "A" } ],
+      "title": "LAN availability over selected time range",
       "type": "bargauge"
     }
   ],
