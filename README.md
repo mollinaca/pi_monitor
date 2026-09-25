@@ -49,7 +49,7 @@ LAN内は30秒間隔、インターネット上の対象は5分間隔で監視�
 - AP-2F (`192.168.100.247`) へのICMP到達性
 - 外部IP (`1.1.1.1`) へのICMP到達性
 - Cloudflare DNS (`1.1.1.1`) による名前解決
-- Yahoo JapanとGoogleへのHTTPS到達性
+- Yahoo Japan、Google、GitHub、X、DiscordへのHTTPS到達性
 - 米国西岸・東岸、欧州中央・北部、東南アジアへのHTTPS到達性
 
 地域別監視ではHetznerの地域別テストホストへRangeリクエストを送り、100MBファイル全体ではなく1バイトだけを取得します。

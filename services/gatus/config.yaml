@@ -62,6 +62,33 @@ endpoints:
       - "[STATUS] == 200"
       - "[CONNECTED] == true"
 
+  - name: github
+    group: 02-INTERNET
+    url: "https://github.com/"
+    interval: 5m
+    method: HEAD
+    conditions:
+      - "[STATUS] == 200"
+      - "[CONNECTED] == true"
+
+  - name: x
+    group: 02-INTERNET
+    url: "https://x.com/"
+    interval: 5m
+    method: HEAD
+    conditions:
+      - "[STATUS] == 200"
+      - "[CONNECTED] == true"
+
+  - name: discord
+    group: 02-INTERNET
+    url: "https://discord.com/"
+    interval: 5m
+    method: HEAD
+    conditions:
+      - "[STATUS] == 200"
+      - "[CONNECTED] == true"
+
   # Hetzner's regional speed-test hosts resolve to location-specific servers.
   # Requesting one byte verifies DNS, TCP, TLS, and HTTP without downloading
   # the 100 MB test file.
