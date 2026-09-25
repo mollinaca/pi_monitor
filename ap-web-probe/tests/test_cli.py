@@ -4,7 +4,7 @@ from pathlib import Path
 
 from prometheus_client.parser import text_string_to_metric_families
 
-from pi_ap_web_probe.cli import Credentials, Settings, Target, count_client_records, normalize_client_records, number, parse_wap_payload, radio_entries, write_metrics
+from pi_ap_web_probe.cli import Credentials, Settings, Target, band_aggregates, band_for_channel, count_client_records, normalize_client_records, number, parse_wap_payload, radio_entries, write_metrics
 
 
 def test_number_accepts_plain_numeric_values_only() -> None:
@@ -59,6 +59,21 @@ def test_normalize_client_records_keeps_only_valid_known_fields() -> None:
     ]
 
 
+def test_band_aggregation_uses_bounded_band_labels() -> None:
+    records = [
+        {"mac": "00:11:22:33:44:55", "channel": "1", "data_rate": 72.2},
+        {"mac": "00:11:22:33:44:56", "channel": "44", "data_rate": 866.7},
+        {"mac": "00:11:22:33:44:57", "channel": "44"},
+        {"mac": "00:11:22:33:44:58", "channel": "unexpected"},
+    ]
+    assert band_for_channel("14") == "2_4ghz"
+    assert band_for_channel("36") == "5ghz"
+    assert band_for_channel("unexpected") == "unknown"
+    assert band_aggregates(records) == {
+        "2_4ghz": {"clients": 1.0, "data_rate_total": 72.2, "data_rate_samples": 1.0},
+        "5ghz": {"clients": 2.0, "data_rate_total": 866.7, "data_rate_samples": 1.0},
+        "unknown": {"clients": 1.0, "data_rate_total": 0.0, "data_rate_samples": 0.0},
+    }
 def test_write_metrics_records_failure_without_client_identifiers(tmp_path: Path, monkeypatch) -> None:
     settings = Settings(
         credentials_file=tmp_path / "credentials.toml",

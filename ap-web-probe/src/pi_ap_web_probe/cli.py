@@ -307,6 +307,32 @@ def normalize_client_records(records: list[Any]) -> list[dict[str, Any]]:
     return normalized
 
 
+def band_for_channel(channel: Any) -> str:
+    """Map a Wi-Fi channel to a bounded Prometheus label value."""
+    channel_number = number(channel)
+    if channel_number is None or not channel_number.is_integer():
+        return "unknown"
+    if 1 <= channel_number <= 14:
+        return "2_4ghz"
+    if 32 <= channel_number <= 196:
+        return "5ghz"
+    return "unknown"
+
+
+def band_aggregates(records: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
+    """Aggregate association data without exporting client identifiers."""
+    aggregates: dict[str, dict[str, float]] = {}
+    for record in records:
+        band = band_for_channel(record.get("channel"))
+        values = aggregates.setdefault(band, {"clients": 0.0, "data_rate_total": 0.0, "data_rate_samples": 0.0})
+        values["clients"] += 1
+        data_rate = number(record.get("data_rate"))
+        if data_rate is not None:
+            values["data_rate_total"] += data_rate
+            values["data_rate_samples"] += 1
+    return aggregates
+
+
 def collect_target(target: Target, credentials: Credentials) -> tuple[Any, Any, float]:
     started = time.monotonic()
     client = BrowserWapClient(target, credentials)
@@ -327,11 +353,19 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
     attempt = Gauge("home_ap_web_probe_timestamp_seconds", "Unix timestamp of the latest AP web probe attempt", labels, registry=registry)
     duration = Gauge("home_ap_web_probe_duration_seconds", "Wall-clock duration of the latest AP web probe", labels, registry=registry)
     clients = Gauge("home_ap_web_associated_clients", "Associated clients reported by the AP", labels, registry=registry)
-    radio_labels = labels + ("radio",)
-    radio_metrics = {
-        key: Gauge(f"home_ap_web_radio_{key}", f"AP-reported radio {key.replace('_', ' ')}", radio_labels, registry=registry)
-        for key in ("clients", "channel", "snr", "data_rate", "throughput", "uplink", "downlink")
-    }
+    band_labels = labels + ("band",)
+    band_clients = Gauge(
+        "home_ap_web_band_associated_clients",
+        "Associated clients reported by the AP, grouped by Wi-Fi band",
+        band_labels,
+        registry=registry,
+    )
+    band_data_rate = Gauge(
+        "home_ap_web_band_average_data_rate_mbps",
+        "Average client link data rate reported by the AP UI, grouped by Wi-Fi band",
+        band_labels,
+        registry=registry,
+    )
     for target in settings.targets:
         values = (target.identifier, target.address)
         attempt.labels(*values).set(time.time())
@@ -340,11 +374,12 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
             success.labels(*values).set(1)
             duration.labels(*values).set(elapsed)
             clients.labels(*values).set(count_client_records(associations))
-            for radio, details in radio_entries(dashboard):
-                for key, metric in radio_metrics.items():
-                    value = number(details.get(key))
-                    if value is not None:
-                        metric.labels(*values, radio).set(value)
+            for band, aggregate in band_aggregates(associations["clients"]).items():
+                band_clients.labels(*values, band).set(aggregate["clients"])
+                if aggregate["data_rate_samples"]:
+                    band_data_rate.labels(*values, band).set(
+                        aggregate["data_rate_total"] / aggregate["data_rate_samples"]
+                    )
         except (OSError, RuntimeError, ValueError, json.JSONDecodeError, WebDriverException) as exc:
             print(f"AP web probe failed for {target.identifier}: {exc}", file=sys.stderr)
             success.labels(*values).set(0)
