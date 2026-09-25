@@ -98,6 +98,7 @@ def make_cookie(name: str, value: str, domain: str) -> Cookie:
 
 
 _NUMERIC_DIVISION = re.compile(r"(?<![A-Za-z0-9_.])-?[0-9]+(?:\.[0-9]+)?\s*/\s*-?[0-9]+(?:\.[0-9]+)?(?![A-Za-z0-9_.])")
+_TRAILING_COMMA = re.compile(r",\s*([}\]])")
 
 
 def parse_wap_payload(body: str) -> Any:
@@ -117,7 +118,8 @@ def parse_wap_payload(body: str) -> Any:
             raise ValueError("AP payload contains division by zero")
         return str(float(left) / denominator)
 
-    return json.loads(_NUMERIC_DIVISION.sub(replace_division, payload))
+    normalized = _NUMERIC_DIVISION.sub(replace_division, payload)
+    return json.loads(_TRAILING_COMMA.sub(r"\1", normalized))
 
 
 class WapClient:
