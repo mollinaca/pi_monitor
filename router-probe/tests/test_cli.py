@@ -5,19 +5,19 @@ import pytest
 from pi_router_probe.cli import clean_cli_output, count_table_rows, load_settings, parse_environment, parse_lan_counters
 
 
-def test_parse_environment_extracts_only_present_metrics() -> None:
-    result = parse_environment("CPU utilization: 17%\nMemory utilization: 42%\nUptime: 12345 seconds")
-    assert result == {"cpu_percent": 17.0, "memory_percent": 42.0, "uptime_seconds": 12345.0}
+def test_parse_environment_extracts_rtx1210_uptime() -> None:
+    result = parse_environment("CPU: 17%(5sec)\nMemory: 42% used\nElapsed time from boot: 380days 14:26:06")
+    assert result == {"cpu_percent": 17.0, "memory_percent": 42.0, "uptime_seconds": 32883966.0}
 
 
 def test_parse_lan_counters() -> None:
-    text = """Received bytes: 1,234\nTransmitted bytes: 5,678\nReceive packets: 10\nTransmit packets: 11\nReceived errors: 0"""
+    text = """Transmitted: 10 packets (5,678 octets)\nReceived: 11 packets (1,234 octets)\nReceive overflow: 0"""
     assert parse_lan_counters(text) == {
         "receive_bytes": 1234.0,
         "transmit_bytes": 5678.0,
-        "receive_packets": 10.0,
-        "transmit_packets": 11.0,
-        "receive_errors": 0.0,
+        "receive_packets": 11.0,
+        "transmit_packets": 10.0,
+        "receive_overflow": 0.0,
     }
 
 

@@ -156,25 +156,36 @@ def parse_environment(text: str) -> dict[str, float]:
         values["cpu_percent"] = float(cpu)
     if memory is not None:
         values["memory_percent"] = float(memory)
-    # Yamaha releases vary between an elapsed seconds field and a human-readable
-    # boot timestamp. Export uptime only when the CLI gives an unambiguous count.
-    uptime = integer_match(text, (r"(?:Uptime|Elapsed time).*?" + NUMBER + r"\s*(?:sec|seconds)",))
-    if uptime is not None:
-        values["uptime_seconds"] = float(uptime)
+    # RTX1210 reports e.g. ``380days 14:26:06``.  Do not take an individual
+    # clock component as seconds: that would silently turn a long uptime into
+    # a value such as six seconds.
+    elapsed = re.search(
+        r"Elapsed time from boot:\s*(?:(\d+)days\s+)?(\d{1,2}):(\d{2}):(\d{2})",
+        text,
+        re.IGNORECASE,
+    )
+    if elapsed:
+        days, hours, minutes, seconds = (int(value or 0) for value in elapsed.groups())
+        values["uptime_seconds"] = float(days * 86400 + hours * 3600 + minutes * 60 + seconds)
     return values
 
 
 def parse_lan_counters(text: str) -> dict[str, float]:
-    """Parse common Yamaha English CLI counter labels without inventing values."""
-    fields = {
-        "receive_bytes": (r"(?:Received|Receive)\s+(?:bytes|octets)\s*[:=]\s*" + NUMBER,),
-        "transmit_bytes": (r"(?:Transmitted|Transmit|Sent)\s+(?:bytes|octets)\s*[:=]\s*" + NUMBER,),
-        "receive_packets": (r"(?:Received|Receive)\s+packets\s*[:=]\s*" + NUMBER,),
-        "transmit_packets": (r"(?:Transmitted|Transmit|Sent)\s+packets\s*[:=]\s*" + NUMBER,),
-        "receive_errors": (r"(?:Received|Receive)\s+errors\s*[:=]\s*" + NUMBER,),
-        "transmit_errors": (r"(?:Transmitted|Transmit|Sent)\s+errors\s*[:=]\s*" + NUMBER,),
-    }
-    return {name: float(value) for name, patterns in fields.items() if (value := integer_match(text, patterns)) is not None}
+    """Parse the packet/octet counters printed by ``show status lanN``."""
+    counters: dict[str, float] = {}
+    for direction, prefix in (("Transmitted", "transmit"), ("Received", "receive")):
+        match = re.search(
+            rf"{direction}:\s*{NUMBER}\s+packets?\s*\(\s*{NUMBER}\s+octets?\s*\)",
+            text,
+            re.IGNORECASE,
+        )
+        if match:
+            counters[f"{prefix}_packets"] = float(match.group(1).replace(",", ""))
+            counters[f"{prefix}_bytes"] = float(match.group(2).replace(",", ""))
+    overflow = integer_match(text, (r"Receive overflow:\s*" + NUMBER,))
+    if overflow is not None:
+        counters["receive_overflow"] = float(overflow)
+    return counters
 
 
 def count_table_rows(text: str, *, mac_only: bool = False) -> int:
