@@ -222,7 +222,19 @@ class BrowserWapClient:
 
     def close(self) -> None:
         try:
-            self.driver.get(self.target.base_url + "/admin.cgi?action=logout")
+            # Do not navigate to logout: the AP can keep the current page's
+            # long-poll request open. Send a bounded background request, then
+            # always terminate the browser process.
+            self.driver.execute_async_script(
+                """
+                const done = arguments[arguments.length - 1];
+                const controller = new AbortController();
+                const timer = setTimeout(() => { controller.abort(); done(); }, 1500);
+                fetch('/admin.cgi?action=logout', {signal: controller.signal})
+                  .catch(() => undefined)
+                  .finally(() => { clearTimeout(timer); done(); });
+                """
+            )
         finally:
             self.driver.quit()
 
