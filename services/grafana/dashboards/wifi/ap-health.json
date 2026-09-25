@@ -1,0 +1,65 @@
+{
+  "annotations": { "list": [] },
+  "description": "Read-only Cisco AP association statistics collected from the rendered AP management UI.",
+  "editable": false,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [ { "options": { "0": { "color": "red", "text": "Failed" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] }, "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 0 }, "id": 1,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
+      "targets": [ { "expr": "home_ap_web_probe_success{ap=~\"$ap\"}", "refId": "A" } ], "title": "Latest AP read", "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 0 }, "id": 2,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
+      "targets": [ { "expr": "home_ap_web_associated_clients{ap=~\"$ap\"}", "refId": "A" } ], "title": "Latest associated clients", "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "dateTimeAsLocal" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 0 }, "id": 3,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
+      "targets": [ { "expr": "home_ap_web_probe_timestamp_seconds{ap=~\"$ap\"} * 1000", "refId": "A" } ], "title": "Last read attempt", "type": "stat"
+    },
+    {
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 0 }, "id": 4,
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Data source\n\n- Cisco AP's rendered association page, read using a **Read Only** account.\n- Shows aggregate AP and Wi-Fi-band statistics only; client identities are not exported.\n- The collection timer is currently **disabled**, so values update only after a manual probe run.", "mode": "markdown" },
+      "pluginVersion": "13.2.2", "title": "About this dashboard", "type": "text"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 7 }, "id": 5,
+      "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_ap_web_associated_clients{ap=~\"$ap\"}", "legendFormat": "{{ap}} total", "refId": "A" }, { "expr": "home_ap_web_band_associated_clients{ap=~\"$ap\"}", "legendFormat": "{{ap}} {{band}}", "refId": "B" } ], "title": "Associated clients", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "Mbps" }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 7 }, "id": 6,
+      "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_ap_web_band_average_data_rate_mbps{ap=~\"$ap\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ], "title": "Average client link data rate by band", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }, "id": 7,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_ap_web_probe_duration_seconds{ap=~\"$ap\"}", "legendFormat": "{{ap}}", "refId": "A" } ], "title": "AP read duration", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" }, "mappings": [ { "options": { "0": { "color": "red", "text": "Failed" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }, "id": 8,
+      "options": { "alignValue": "center", "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "mergeValues": true, "rowHeight": 0.9, "showValue": "always", "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_ap_web_probe_success{ap=~\"$ap\"}", "legendFormat": "{{ap}}", "refId": "A" } ], "title": "AP read success", "type": "state-timeline"
+    }
+  ],
+  "refresh": "5m", "schemaVersion": 42, "tags": [ "wifi", "ap", "network" ],
+  "templating": { "list": [ { "allValue": ".*", "current": { "text": "All", "value": [ "$__all" ] }, "datasource": { "type": "prometheus", "uid": "prometheus" }, "definition": "label_values(home_ap_web_probe_success, ap)", "includeAll": true, "label": "AP", "multi": true, "name": "ap", "options": [], "query": { "query": "label_values(home_ap_web_probe_success, ap)", "refId": "PrometheusVariableQueryEditor-VariableQuery" }, "refresh": 1, "sort": 1, "type": "query" } ] },
+  "time": { "from": "now-7d", "to": "now" }, "timepicker": {}, "timezone": "browser", "title": "AP Health", "uid": "ap-health", "version": 1
+}
