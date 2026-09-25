@@ -1,0 +1,7 @@
+# Copy to /root/.config/pi_monitor/device-names.toml on the Pi, set mode 0600,
+# then add one [[device]] block per personally named device.  Never commit the
+# real file: MAC addresses and device names are private inventory data.
+
+[[device]]
+mac = "00:11:22:33:44:55"
+name = "Example device"

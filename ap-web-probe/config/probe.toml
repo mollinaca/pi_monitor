@@ -5,6 +5,9 @@
 credentials_file = "/root/.config/pi_monitor/ap-web-probe.toml"
 metrics_directory = "/mnt/data/pi_monitor/data/node-exporter/textfile"
 metrics_filename = "ap-web.prom"
+# This root-only local file maps MAC addresses to user-defined display names.
+# It is intentionally not part of this repository.
+device_names_file = "/root/.config/pi_monitor/device-names.toml"
 
 [[targets]]
 id = "ap1"
