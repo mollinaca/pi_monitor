@@ -13,3 +13,10 @@ address = "192.168.100.246"
 # silently disabling TLS verification in code.
 verify_tls = false
 timeout_seconds = 45
+
+[[targets]]
+id = "ap2"
+address = "192.168.100.247"
+# AP2 uses the same self-signed HTTPS setup and the same Read Only account.
+verify_tls = false
+timeout_seconds = 45
