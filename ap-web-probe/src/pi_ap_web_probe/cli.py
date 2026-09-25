@@ -1,0 +1,236 @@
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import ssl
+import sys
+import time
+import tomllib
+from dataclasses import dataclass
+from http.cookiejar import Cookie, CookieJar
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlencode
+from urllib.request import HTTPCookieProcessor, HTTPSHandler, Request, build_opener
+
+from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
+
+
+@dataclass(frozen=True)
+class Target:
+    identifier: str
+    address: str
+    verify_tls: bool
+    timeout_seconds: int
+
+    @property
+    def base_url(self) -> str:
+        return f"https://{self.address}"
+
+
+@dataclass(frozen=True)
+class Settings:
+    credentials_file: Path
+    metrics_directory: Path
+    metrics_filename: str
+    targets: tuple[Target, ...]
+
+    @property
+    def metrics_path(self) -> Path:
+        return self.metrics_directory / self.metrics_filename
+
+
+@dataclass(frozen=True)
+class Credentials:
+    username: str
+    password: str
+
+
+def load_settings(path: Path) -> Settings:
+    with path.open("rb") as handle:
+        data = tomllib.load(handle)
+    probe = data.get("probe")
+    targets = data.get("targets")
+    if not isinstance(probe, dict) or not isinstance(targets, list) or not targets:
+        raise ValueError("[probe] and at least one [[targets]] table are required")
+    required = ("credentials_file", "metrics_directory", "metrics_filename")
+    if any(not isinstance(probe.get(key), str) or not probe[key] for key in required):
+        raise ValueError("probe configuration contains missing or invalid string values")
+    filename = probe["metrics_filename"]
+    if Path(filename).name != filename or not filename.endswith(".prom"):
+        raise ValueError("metrics_filename must be a plain .prom filename")
+    configured: list[Target] = []
+    identifiers: set[str] = set()
+    for target in targets:
+        if not isinstance(target, dict):
+            raise ValueError("each target must be a TOML table")
+        identifier, address = target.get("id"), target.get("address")
+        verify_tls, timeout = target.get("verify_tls"), target.get("timeout_seconds")
+        if not isinstance(identifier, str) or not identifier or not re.fullmatch(r"[a-z0-9_-]+", identifier):
+            raise ValueError("target id must contain only lowercase letters, digits, _ or -")
+        if identifier in identifiers or not isinstance(address, str) or not address:
+            raise ValueError("target ids and addresses must be non-empty and unique")
+        if not isinstance(verify_tls, bool) or not isinstance(timeout, int) or timeout <= 0:
+            raise ValueError("target verify_tls and timeout_seconds are required")
+        identifiers.add(identifier)
+        configured.append(Target(identifier, address, verify_tls, timeout))
+    return Settings(Path(probe["credentials_file"]), Path(probe["metrics_directory"]), filename, tuple(configured))
+
+
+def load_credentials(path: Path) -> Credentials:
+    mode = path.stat().st_mode & 0o777
+    if mode & 0o077:
+        raise ValueError(f"credentials file must not be group/world readable: {path}")
+    with path.open("rb") as handle:
+        data = tomllib.load(handle)
+    auth = data.get("auth")
+    if not isinstance(auth, dict):
+        raise ValueError("[auth] table is required in credentials file")
+    username, password = auth.get("username"), auth.get("password")
+    if not isinstance(username, str) or not username or not isinstance(password, str) or not password:
+        raise ValueError("credentials file must provide non-empty username and password")
+    return Credentials(username, password)
+
+
+def make_cookie(name: str, value: str, domain: str) -> Cookie:
+    return Cookie(0, name, value, None, False, domain, False, False, "/", True, False, None, True, None, None, {})
+
+
+class WapClient:
+    def __init__(self, target: Target, credentials: Credentials) -> None:
+        self.target = target
+        self.credentials = credentials
+        self.cookies = CookieJar()
+        context = ssl.create_default_context() if target.verify_tls else ssl._create_unverified_context()
+        self.opener = build_opener(HTTPCookieProcessor(self.cookies), HTTPSHandler(context=context))
+
+    def request(self, path: str, data: dict[str, str] | None = None) -> str:
+        payload = urlencode(data).encode() if data is not None else None
+        request = Request(
+            self.target.base_url + path,
+            data=payload,
+            headers={"User-Agent": "pi-monitor-ap-web-probe/0.1", "Content-Type": "application/x-www-form-urlencoded"},
+        )
+        with self.opener.open(request, timeout=self.target.timeout_seconds) as response:
+            return response.read().decode("utf-8", errors="replace")
+
+    def login(self) -> None:
+        self.request("/")
+        response = self.request(
+            "/admin.cgi?action=logon",
+            {
+                "i_username": self.credentials.username,
+                "i_password": __import__("base64").b64encode(self.credentials.password.encode()).decode(),
+                "locale": "en",
+                "login": "",
+                "login_times": "1",
+                "protocol": "https",
+                "local_addr": self.target.address,
+            },
+        )
+        result = re.search(r'lg_ret="([0-9]+)-([0-9]+)-lgEnd"', response)
+        session = re.search(r'cookie_info="([^"-]+)-([^"-]+)-cookieEnd"', response)
+        if result is None or result.group(1) == "0" or session is None:
+            error = result.group(2) if result is not None else "unknown"
+            raise RuntimeError(f"AP web login failed (status={error})")
+        self.cookies.set_cookie(make_cookie(session.group(1), session.group(2), self.target.address))
+
+    def get_json(self, action: str) -> Any:
+        body = self.request(f"/admin.cgi?action={action}")
+        return json.loads(body.split("<!--", 1)[0])
+
+    def logout(self) -> None:
+        try:
+            self.request("/admin.cgi?action=logout")
+        except OSError:
+            pass
+
+
+def number(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        match = re.fullmatch(r"\s*(-?[0-9]+(?:\.[0-9]+)?)\s*", value)
+        return float(match.group(1)) if match else None
+    return None
+
+
+def radio_entries(value: Any) -> list[tuple[str, dict[str, Any]]]:
+    if not isinstance(value, dict):
+        return []
+    result: list[tuple[str, dict[str, Any]]] = []
+    for name, details in value.items():
+        if name in {"wlan0", "wlan1"} and isinstance(details, dict):
+            result.append((name, details))
+        result.extend(radio_entries(details))
+    return result
+
+
+def count_client_records(value: Any) -> int:
+    if isinstance(value, list):
+        return sum(count_client_records(item) for item in value)
+    if not isinstance(value, dict):
+        return 0
+    own = 1 if isinstance(value.get("mac"), str) else 0
+    return own + sum(count_client_records(item) for item in value.values())
+
+
+def collect_target(target: Target, credentials: Credentials) -> tuple[Any, Any, float]:
+    started = time.monotonic()
+    client = WapClient(target, credentials)
+    try:
+        client.login()
+        return client.get_json("get_dashboard_info"), client.get_json("associations_info"), time.monotonic() - started
+    finally:
+        client.logout()
+
+
+def write_metrics(settings: Settings, credentials: Credentials) -> Path:
+    settings.metrics_directory.mkdir(parents=True, exist_ok=True)
+    registry = CollectorRegistry()
+    labels = ("ap", "address")
+    success = Gauge("home_ap_web_probe_success", "1 if the AP read-only web probe succeeded", labels, registry=registry)
+    attempt = Gauge("home_ap_web_probe_timestamp_seconds", "Unix timestamp of the latest AP web probe attempt", labels, registry=registry)
+    duration = Gauge("home_ap_web_probe_duration_seconds", "Wall-clock duration of the latest AP web probe", labels, registry=registry)
+    clients = Gauge("home_ap_web_associated_clients", "Associated clients reported by the AP", labels, registry=registry)
+    radio_labels = labels + ("radio",)
+    radio_metrics = {
+        key: Gauge(f"home_ap_web_radio_{key}", f"AP-reported radio {key.replace('_', ' ')}", radio_labels, registry=registry)
+        for key in ("clients", "channel", "snr", "data_rate", "throughput", "uplink", "downlink")
+    }
+    for target in settings.targets:
+        values = (target.identifier, target.address)
+        attempt.labels(*values).set(time.time())
+        try:
+            dashboard, associations, elapsed = collect_target(target, credentials)
+            success.labels(*values).set(1)
+            duration.labels(*values).set(elapsed)
+            clients.labels(*values).set(count_client_records(associations))
+            for radio, details in radio_entries(dashboard):
+                for key, metric in radio_metrics.items():
+                    value = number(details.get(key))
+                    if value is not None:
+                        metric.labels(*values, radio).set(value)
+        except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
+            print(f"AP web probe failed for {target.identifier}: {exc}", file=sys.stderr)
+            success.labels(*values).set(0)
+    write_to_textfile(str(settings.metrics_path), registry)
+    return settings.metrics_path
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Collect read-only AP web UI metrics")
+    parser.add_argument("--config", required=True, type=Path)
+    args = parser.parse_args(argv)
+    try:
+        settings = load_settings(args.config)
+        credentials = load_credentials(settings.credentials_file)
+        destination = write_metrics(settings, credentials)
+    except (OSError, ValueError) as exc:
+        print(f"AP web probe failed before writing metrics: {exc}", file=sys.stderr)
+        return 1
+    print(f"AP web probe metrics written to {destination}")
+    return 0

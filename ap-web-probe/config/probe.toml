@@ -1,0 +1,15 @@
+[probe]
+# Credentials are intentionally stored outside this repository in the
+# root-readable file below.  The installer rejects a credentials file that is
+# readable by group or other users.
+credentials_file = "/root/.config/pi_monitor/ap-web-probe.toml"
+metrics_directory = "/mnt/data/pi_monitor/data/node-exporter/textfile"
+metrics_filename = "ap-web.prom"
+
+[[targets]]
+id = "ap1"
+address = "192.168.100.246"
+# The WAP150 uses a self-signed certificate. Keep this explicit rather than
+# silently disabling TLS verification in code.
+verify_tls = false
+timeout_seconds = 45

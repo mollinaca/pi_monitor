@@ -1,0 +1,26 @@
+[project]
+name = "pi-ap-web-probe"
+version = "0.1.0"
+description = "Read-only Cisco AP web UI metrics probe for the Raspberry Pi"
+requires-python = ">=3.11"
+dependencies = [
+    "prometheus-client>=0.22,<1",
+]
+
+[project.scripts]
+pi-ap-web-probe = "pi_ap_web_probe.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<10",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pi_ap_web_probe"]

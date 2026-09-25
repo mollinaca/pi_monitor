@@ -1,0 +1,11 @@
+[Unit]
+Description=Run AP web UI metrics probe every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Persistent=true
+AccuracySec=15s
+Unit=pi-ap-web-probe.service
+
+[Install]
+WantedBy=timers.target

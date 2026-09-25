@@ -24,11 +24,11 @@ scrape_configs:
           - node-exporter:9100
         labels:
           host: raspberry-pi
-    # SMART and internet speed are collected by dedicated jobs below. Do not
+    # SMART, internet speed, and AP web metrics are collected by dedicated jobs below. Do not
     # store their textfile metrics with the host metrics as well.
     metric_relabel_configs:
       - source_labels: [__name__]
-        regex: home_ssd_smart_.+|home_internet_speedtest_.+
+        regex: home_ssd_smart_.+|home_internet_speedtest_.+|home_ap_web_.+
         action: drop
 
   - job_name: ssd-smart
@@ -60,6 +60,20 @@ scrape_configs:
     metric_relabel_configs:
       - source_labels: [__name__]
         regex: home_internet_speedtest_.+
+        action: keep
+
+  - job_name: ap-web
+    # The AP web probe is independently scheduled every minute. This job only
+    # reads its textfile output; it never opens an AP management session.
+    scrape_interval: 1m
+    static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          host: raspberry-pi
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: home_ap_web_.+
         action: keep
 
   - job_name: gatus

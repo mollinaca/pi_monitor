@@ -1,0 +1,16 @@
+[Unit]
+Description=Read-only AP web UI metrics probe
+Wants=network-online.target
+After=network-online.target local-fs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/mnt/data/pi_monitor/ap-web-probe
+ExecStart=/mnt/data/pi_monitor/ap-web-probe/.venv/bin/pi-ap-web-probe --config /mnt/data/pi_monitor/ap-web-probe/config/probe.toml
+Environment=PYTHONUNBUFFERED=1
+UMask=0077
+TimeoutStartSec=3min
+Nice=10
+NoNewPrivileges=true
