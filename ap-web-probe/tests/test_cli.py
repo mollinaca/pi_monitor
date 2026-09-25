@@ -4,7 +4,7 @@ from pathlib import Path
 
 from prometheus_client.parser import text_string_to_metric_families
 
-from pi_ap_web_probe.cli import Credentials, Settings, Target, count_client_records, number, radio_entries, write_metrics
+from pi_ap_web_probe.cli import Credentials, Settings, Target, count_client_records, number, parse_wap_payload, radio_entries, write_metrics
 
 
 def test_number_accepts_plain_numeric_values_only() -> None:
@@ -12,6 +12,10 @@ def test_number_accepts_plain_numeric_values_only() -> None:
     assert number(" 2.5 ") == 2.5
     assert number("54 Mbps") is None
     assert number(True) is None
+
+
+def test_parse_wap_payload_accepts_only_numeric_division_expressions() -> None:
+    assert parse_wap_payload('{"data_rate":650/10,"channel":44}') == {"data_rate": 65.0, "channel": 44}
 
 
 def test_radio_entries_and_client_count_avoid_identifier_export() -> None:

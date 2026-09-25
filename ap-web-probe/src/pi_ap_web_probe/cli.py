@@ -97,6 +97,29 @@ def make_cookie(name: str, value: str, domain: str) -> Cookie:
     return Cookie(0, name, value, None, False, domain, False, False, "/", True, False, None, True, None, None, {})
 
 
+_NUMERIC_DIVISION = re.compile(r"(?<![A-Za-z0-9_.])-?[0-9]+(?:\.[0-9]+)?\s*/\s*-?[0-9]+(?:\.[0-9]+)?(?![A-Za-z0-9_.])")
+
+
+def parse_wap_payload(body: str) -> Any:
+    """Parse the WAP150's JavaScript-compatible, but non-strict, JSON payload.
+
+    The firmware returns values such as ``650/10`` for some data rates. Its
+    browser UI evaluates these expressions. Only a pair of numeric literals
+    separated by division is accepted here; arbitrary JavaScript is never run.
+    """
+
+    payload = body.split("<!--", 1)[0]
+
+    def replace_division(match: re.Match[str]) -> str:
+        left, right = match.group(0).split("/", 1)
+        denominator = float(right)
+        if denominator == 0:
+            raise ValueError("AP payload contains division by zero")
+        return str(float(left) / denominator)
+
+    return json.loads(_NUMERIC_DIVISION.sub(replace_division, payload))
+
+
 class WapClient:
     def __init__(self, target: Target, credentials: Credentials) -> None:
         self.target = target
@@ -138,7 +161,10 @@ class WapClient:
 
     def get_json(self, action: str) -> Any:
         body = self.request(f"/admin.cgi?action={action}")
-        return json.loads(body.split("<!--", 1)[0])
+        try:
+            return parse_wap_payload(body)
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise RuntimeError(f"AP response for {action} could not be parsed: {exc}") from exc
 
     def logout(self) -> None:
         try:
