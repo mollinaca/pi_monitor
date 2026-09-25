@@ -28,7 +28,7 @@ scrape_configs:
     # store their textfile metrics with the host metrics as well.
     metric_relabel_configs:
       - source_labels: [__name__]
-        regex: home_ssd_smart_.+|home_internet_speedtest_.+|home_ap_web_.+
+        regex: home_ssd_smart_.+|home_internet_speedtest_.+|home_ap_web_.+|home_router_.+
         action: drop
 
   - job_name: ssd-smart
@@ -74,6 +74,20 @@ scrape_configs:
     metric_relabel_configs:
       - source_labels: [__name__]
         regex: home_ap_web_.+
+        action: keep
+
+  - job_name: router
+    # The router probe is independently scheduled on the Pi. Prometheus only
+    # reads its textfile and never opens an SSH session to the router.
+    scrape_interval: 1m
+    static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          host: raspberry-pi
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: home_router_.+
         action: keep
 
   - job_name: gatus

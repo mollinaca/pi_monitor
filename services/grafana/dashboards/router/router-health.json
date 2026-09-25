@@ -1,0 +1,85 @@
+{
+  "annotations": { "list": [] },
+  "description": "Read-only SSH monitoring of the home router. DHCP, ARP, and switching-MAC inventory stays in a root-only Pi snapshot; this dashboard shows aggregate operational statistics.",
+  "editable": false,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [{ "type": "value", "options": { "0": { "text": "Failed", "color": "red" }, "1": { "text": "OK", "color": "green" }}}], "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 5, "x": 0, "y": 0 }, "id": 1,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [{ "expr": "home_router_probe_success{job=\"router\"}", "refId": "A" }], "title": "Latest router read", "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "dateTimeAsLocal" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 5, "x": 5, "y": 0 }, "id": 2,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [{ "expr": "home_router_probe_timestamp_seconds{job=\"router\"} * 1000", "refId": "A" }], "title": "Latest read attempt", "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] } }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 5, "x": 10, "y": 0 }, "id": 3,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [{ "expr": "home_router_cpu_utilization_percent{job=\"router\"}", "refId": "A" }], "title": "CPU utilization", "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] } }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 5, "x": 15, "y": 0 }, "id": 4,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [{ "expr": "home_router_memory_utilization_percent{job=\"router\"}", "refId": "A" }], "title": "Memory utilization", "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 4, "x": 20, "y": 0 }, "id": 5,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [{ "expr": "home_router_table_entries{job=\"router\",table=\"dhcp\"}", "refId": "A" }], "title": "DHCP entries", "type": "stat"
+    },
+    {
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 7 }, "id": 6,
+      "options": { "content": "### About this dashboard\n\n- Router data is collected by a **Read Only** SSH account every five minutes.\n- CPU, memory, interface counters, and table sizes are exported to Prometheus.\n- DHCP, ARP, and switching-MAC details are retained only in a root-only Pi snapshot for the forthcoming network map; actual addresses and MACs are not stored in Git.", "mode": "markdown" },
+      "title": "Collection and privacy", "type": "text"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "bps", "min": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 12 }, "id": 7,
+      "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "expr": "rate(home_router_interface_counter{job=\"router\",counter=\"receive_bytes\"}[$__rate_interval]) * 8", "legendFormat": "{{interface}} receive", "refId": "A" },
+        { "expr": "rate(home_router_interface_counter{job=\"router\",counter=\"transmit_bytes\"}[$__rate_interval]) * 8", "legendFormat": "{{interface}} transmit", "refId": "B" }
+      ], "title": "LAN traffic by router interface", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto", "axisSoftMin": 0 } }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 12 }, "id": 8,
+      "options": { "legend": { "calcs": ["lastNotNull", "min", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [{ "expr": "home_router_table_entries{job=\"router\"}", "legendFormat": "{{table}}", "refId": "A" }], "title": "DHCP, ARP, and switching-MAC table entries", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 }, "id": 9,
+      "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [
+        { "expr": "home_router_cpu_utilization_percent{job=\"router\"}", "legendFormat": "CPU", "refId": "A" },
+        { "expr": "home_router_memory_utilization_percent{job=\"router\"}", "legendFormat": "Memory", "refId": "B" }
+      ], "title": "Router resource utilization", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s", "min": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 }, "id": 10,
+      "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [{ "expr": "home_router_probe_duration_seconds{job=\"router\"}", "legendFormat": "read duration", "refId": "A" }], "title": "Router read duration", "type": "timeseries"
+    }
+  ],
+  "refresh": "5m", "schemaVersion": 42, "tags": ["router", "network", "dhcp"],
+  "time": { "from": "now-7d", "to": "now" }, "timepicker": {}, "timezone": "browser",
+  "title": "Router Health", "uid": "router-health", "version": 1
+}

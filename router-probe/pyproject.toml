@@ -1,0 +1,25 @@
+[project]
+name = "pi-router-probe"
+version = "0.1.0"
+description = "Read-only Yamaha router SSH metrics probe for the Raspberry Pi"
+requires-python = ">=3.11"
+dependencies = [
+    "pexpect>=4.9,<5",
+    "prometheus-client>=0.22,<1",
+]
+
+[project.scripts]
+pi-router-probe = "pi_router_probe.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["pytest>=8,<10"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pi_router_probe"]

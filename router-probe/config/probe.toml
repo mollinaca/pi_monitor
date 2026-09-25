@@ -1,0 +1,15 @@
+[probe]
+# The password file is created on the Pi only and must be mode 0600.
+password_file = "/root/.config/pi_monitor/router_password.txt"
+metrics_directory = "/mnt/data/pi_monitor/data/node-exporter/textfile"
+metrics_filename = "router.prom"
+# Raw DHCP/ARP/MAC snapshots are private inventory data. They are not in Git
+# and are not exposed through the Prometheus textfile.
+snapshot_directory = "/mnt/data/pi_monitor/data/router-probe"
+
+[router]
+address = "192.168.100.1"
+username = "pi_monitor"
+port = 22
+timeout_seconds = 30
+lan_interfaces = ["lan1", "lan2", "lan3"]

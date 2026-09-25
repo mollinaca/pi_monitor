@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: router-monitoring
+    orgId: 1
+    folder: Router Monitoring
+    folderUid: router-monitoring
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards/router

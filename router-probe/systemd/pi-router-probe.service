@@ -1,0 +1,16 @@
+[Unit]
+Description=Read-only Yamaha router SSH metrics probe
+Wants=network-online.target
+After=network-online.target local-fs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/mnt/data/pi_monitor/router-probe
+ExecStart=/mnt/data/pi_monitor/router-probe/.venv/bin/pi-router-probe --config /mnt/data/pi_monitor/router-probe/config/probe.toml
+Environment=PYTHONUNBUFFERED=1
+UMask=0077
+TimeoutStartSec=2min
+Nice=10
+NoNewPrivileges=true
