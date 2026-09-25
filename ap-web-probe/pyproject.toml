@@ -6,6 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "json5>=0.12,<1",
     "prometheus-client>=0.22,<1",
+    "selenium>=4.40,<5",
 ]
 
 [project.scripts]

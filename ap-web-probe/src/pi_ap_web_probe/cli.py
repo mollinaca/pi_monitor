@@ -16,6 +16,13 @@ from urllib.request import HTTPCookieProcessor, HTTPSHandler, Request, build_ope
 
 import json5
 from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
+from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 @dataclass(frozen=True)
@@ -182,6 +189,51 @@ class WapClient:
             pass
 
 
+class BrowserWapClient:
+    """Use the AP's supported browser path for its JavaScript payload format."""
+
+    def __init__(self, target: Target, credentials: Credentials) -> None:
+        options = Options()
+        options.binary_location = "/usr/bin/chromium"
+        for argument in ("--headless=new", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--ignore-certificate-errors"):
+            options.add_argument(argument)
+        self.target = target
+        self.credentials = credentials
+        self.driver = webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=options)
+        self.wait = WebDriverWait(self.driver, target.timeout_seconds)
+
+    def login(self) -> None:
+        self.driver.get(self.target.base_url + "/")
+        self.wait.until(EC.presence_of_element_located((By.ID, "login-name"))).send_keys(self.credentials.username)
+        self.driver.find_element(By.ID, "i_password_1").send_keys(self.credentials.password)
+        self.driver.execute_script("EncryptPassword()")
+        self.wait.until(lambda driver: "/admin.cgi?action=main" in driver.current_url)
+
+    def get_payload(self, action: str) -> Any:
+        self.driver.get(self.target.base_url + f"/admin.cgi?action={action}")
+        # WAP150's own UI parses this JavaScript-compatible payload with eval.
+        # Run it only in the authenticated AP browser context, then serialize
+        # the resulting data back to Python; it is never executed by Python.
+        script = """
+            const done = arguments[arguments.length - 1];
+            fetch('/admin.cgi?action=' + arguments[0])
+              .then(response => response.text())
+              .then(text => { const value = eval('(' + text.split('<!--')[0] + ')'); done(JSON.stringify(value)); })
+              .catch(error => done(JSON.stringify({__probe_error: String(error)})));
+        """
+        encoded = self.driver.execute_async_script(script, action)
+        value = json.loads(encoded)
+        if isinstance(value, dict) and "__probe_error" in value:
+            raise RuntimeError(f"AP browser payload error for {action}")
+        return value
+
+    def close(self) -> None:
+        try:
+            self.driver.get(self.target.base_url + "/admin.cgi?action=logout")
+        finally:
+            self.driver.quit()
+
+
 def number(value: Any) -> float | None:
     if isinstance(value, bool):
         return None
@@ -215,12 +267,12 @@ def count_client_records(value: Any) -> int:
 
 def collect_target(target: Target, credentials: Credentials) -> tuple[Any, Any, float]:
     started = time.monotonic()
-    client = WapClient(target, credentials)
+    client = BrowserWapClient(target, credentials)
     try:
         client.login()
-        return client.get_json("get_dashboard_info"), client.get_json("associations_info"), time.monotonic() - started
+        return client.get_payload("get_dashboard_info"), client.get_payload("associations_info"), time.monotonic() - started
     finally:
-        client.logout()
+        client.close()
 
 
 def write_metrics(settings: Settings, credentials: Credentials) -> Path:
@@ -249,7 +301,7 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
                     value = number(details.get(key))
                     if value is not None:
                         metric.labels(*values, radio).set(value)
-        except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
+        except (OSError, RuntimeError, ValueError, json.JSONDecodeError, WebDriverException) as exc:
             print(f"AP web probe failed for {target.identifier}: {exc}", file=sys.stderr)
             success.labels(*values).set(0)
     write_to_textfile(str(settings.metrics_path), registry)
