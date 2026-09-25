@@ -46,10 +46,10 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisSoftMin": 0, "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "decimals": 0, "unit": "none" }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 14 }, "id": 5,
       "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_ap_web_associated_clients{ap=~\"$ap\"}", "legendFormat": "{{ap}} total", "refId": "A" }, { "expr": "home_ap_web_band_associated_clients{ap=~\"$ap\"}", "legendFormat": "{{ap}} {{band}}", "refId": "B" } ], "title": "Associated clients", "type": "timeseries"
+      "targets": [ { "expr": "home_ap_web_band_associated_clients{ap=~\"$ap\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ], "title": "Associated clients by band", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
