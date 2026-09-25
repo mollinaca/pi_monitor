@@ -413,7 +413,7 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
     client_info = Info(
         "home_ap_web_client",
         "Current Wi-Fi client association; MAC and name are private home-inventory labels",
-        labels,
+        labels + ("mac",),
         registry=registry,
     )
     device_names = load_device_names(settings.device_names_file)
@@ -428,9 +428,8 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
             for record in associations["clients"]:
                 mac = record["mac"]
                 hostname = record.get("hostname") if isinstance(record.get("hostname"), str) else ""
-                client_info.labels(*values).info(
+                client_info.labels(*values, mac).info(
                     {
-                        "mac": mac,
                         "device_name": device_names.get(mac, hostname or mac),
                         "hostname": hostname,
                         "ssid": record.get("ssid") if isinstance(record.get("ssid"), str) else "",
