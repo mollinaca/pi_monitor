@@ -381,10 +381,17 @@ def collect_target(target: Target, credentials: Credentials) -> tuple[Any, Any, 
     started = time.monotonic()
     client = BrowserWapClient(target, credentials)
     try:
-        client.login()
+        try:
+            client.login()
+        except WebDriverException as exc:
+            raise RuntimeError("AP browser login did not complete") from exc
         # Client details intentionally remain in-process at this stage.  The
         # textfile collector exports only the aggregate count below.
-        return {}, {"clients": client.associated_clients()}, time.monotonic() - started
+        try:
+            associations = client.associated_clients()
+        except WebDriverException as exc:
+            raise RuntimeError("AP associations page did not render client data") from exc
+        return {}, {"clients": associations}, time.monotonic() - started
     finally:
         client.close()
 
