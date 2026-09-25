@@ -195,6 +195,9 @@ class BrowserWapClient:
     def __init__(self, target: Target, credentials: Credentials) -> None:
         options = Options()
         options.binary_location = "/usr/bin/chromium"
+        # The WAP150 starts long-polling from some pages. Waiting for the full
+        # load event can therefore block Selenium before DOM inspection.
+        options.page_load_strategy = "eager"
         for argument in ("--headless=new", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu", "--ignore-certificate-errors"):
             options.add_argument(argument)
         self.target = target
