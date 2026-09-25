@@ -209,23 +209,13 @@ class BrowserWapClient:
         self.driver.execute_script("EncryptPassword()")
         self.wait.until(lambda driver: "/admin.cgi?action=main" in driver.current_url)
 
-    def get_payload(self, page: str, action: str) -> Any:
-        self.driver.get(self.target.base_url + f"/admin.cgi?action={page}")
-        # WAP150's own UI parses this JavaScript-compatible payload with eval.
-        # Run it only in the authenticated AP browser context, then serialize
-        # the resulting data back to Python; it is never executed by Python.
-        script = """
-            const done = arguments[arguments.length - 1];
-            fetch('/admin.cgi?action=' + arguments[0])
-              .then(response => response.text())
-              .then(text => { const value = eval('(' + text.split('<!--')[0] + ')'); done(JSON.stringify(value)); })
-              .catch(error => done(JSON.stringify({__probe_error: String(error)})));
-        """
-        encoded = self.driver.execute_async_script(script, action)
-        value = json.loads(encoded)
-        if isinstance(value, dict) and "__probe_error" in value:
-            raise RuntimeError(f"AP browser payload error for {action}")
-        return value
+    def dashboard_client_count(self) -> int:
+        self.driver.get(self.target.base_url + "/admin.cgi?action=dashboard")
+        element = self.wait.until(EC.visibility_of_element_located((By.ID, "total_clients")))
+        match = re.search(r"\d+", element.text)
+        if match is None:
+            raise RuntimeError("AP dashboard did not render a numeric client count")
+        return int(match.group(0))
 
     def close(self) -> None:
         try:
@@ -270,11 +260,10 @@ def collect_target(target: Target, credentials: Credentials) -> tuple[Any, Any, 
     client = BrowserWapClient(target, credentials)
     try:
         client.login()
-        return (
-            client.get_payload("dashboard", "get_dashboard_info"),
-            client.get_payload("associations", "associations_info"),
-            time.monotonic() - started,
-        )
+        client_count = client.dashboard_client_count()
+        # Do not retain client identifiers. The synthetic records only reuse
+        # the existing aggregation path for the count metric.
+        return {}, {"clients": [{"mac": ""}] * client_count}, time.monotonic() - started
     finally:
         client.close()
 
