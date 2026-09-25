@@ -119,7 +119,9 @@ def parse_wap_payload(body: str) -> Any:
         return str(float(left) / denominator)
 
     normalized = _NUMERIC_DIVISION.sub(replace_division, payload)
-    return json.loads(_TRAILING_COMMA.sub(r"\1", normalized))
+    # Some firmware strings contain literal control characters. JavaScript
+    # accepts these in the UI payload, whereas strict JSON rejects them.
+    return json.loads(_TRAILING_COMMA.sub(r"\1", normalized), strict=False)
 
 
 class WapClient:
