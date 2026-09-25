@@ -5,17 +5,24 @@
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" }, "mappings": [ { "options": { "0": { "color": "red", "text": "NG" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "unit": "none" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Bps" }, "overrides": [] },
       "gridPos": { "h": 7, "w": 8, "x": 0, "y": 0 }, "id": 1,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
-      "targets": [ { "expr": "home_internet_speedtest_probe_success{job=\"internet-speed\"}", "refId": "A" } ], "title": "Latest test", "type": "stat"
+      "targets": [ { "expr": "home_internet_speedtest_download_bytes_per_second{job=\"internet-speed\"}", "refId": "A" } ], "title": "Latest download", "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "dateTimeAsLocal" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 0 }, "id": 2,
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 0 }, "id": 2,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
-      "targets": [ { "expr": "home_internet_speedtest_probe_timestamp_seconds{job=\"internet-speed\"}", "refId": "A" } ], "title": "Last test attempt", "type": "stat"
+      "targets": [ { "expr": "home_internet_speedtest_probe_timestamp_seconds{job=\"internet-speed\"} * 1000", "refId": "A" } ], "title": "Last test attempt", "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Bps" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 0 }, "id": 5,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
+      "targets": [ { "expr": "home_internet_speedtest_upload_bytes_per_second{job=\"internet-speed\"}", "refId": "A" } ], "title": "Latest upload", "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -30,6 +37,10 @@
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 17 }, "id": 4,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "home_internet_speedtest_ping_latency_milliseconds{job=\"internet-speed\"}", "legendFormat": "idle latency", "refId": "A" }, { "expr": "home_internet_speedtest_ping_jitter_milliseconds{job=\"internet-speed\"}", "legendFormat": "jitter", "refId": "B" } ], "title": "Idle latency and jitter", "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 27 }, "id": 6,
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Measurement conditions\n\n- Measurements use the **Ookla Speedtest CLI** from the Raspberry Pi's wired `eth0` interface.\n- The test server is fixed to **IPA CyberLab 400G, Tokyo, Japan** (server ID `48463`) so the series remains comparable.\n- A full download and upload test runs **every 30 minutes**. It intentionally uses substantial bandwidth and represents the internet connection from the wired Pi location, not Wi-Fi throughput.", "mode": "markdown" }, "pluginVersion": "13.2.2", "title": "About this measurement", "type": "text"
     }
   ],
   "refresh": "1m", "schemaVersion": 42, "tags": [ "internet", "speedtest", "ookla" ], "templating": { "list": [] },
