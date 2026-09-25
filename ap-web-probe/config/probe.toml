@@ -22,4 +22,6 @@ id = "ap2"
 address = "192.168.100.247"
 # AP2 uses the same self-signed HTTPS setup and the same Read Only account.
 verify_tls = false
-timeout_seconds = 45
+# AP2's rendered associations page can take longer after AP1 has been read.
+# Keep the whole two-AP run below the service's three-minute timeout.
+timeout_seconds = 90
