@@ -322,7 +322,13 @@ def band_for_channel(channel: Any) -> str:
 
 def band_aggregates(records: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
     """Aggregate association data without exporting client identifiers."""
-    aggregates: dict[str, dict[str, float]] = {}
+    # Always expose the two physical Wi-Fi bands.  A missing client record is
+    # a real zero, not an absent measurement; emitting it keeps Grafana from
+    # rendering an ambiguous gap when no client is associated to a band.
+    aggregates: dict[str, dict[str, float]] = {
+        band: {"clients": 0.0, "data_rate_total": 0.0, "data_rate_samples": 0.0}
+        for band in ("2_4ghz", "5ghz")
+    }
     for record in records:
         band = band_for_channel(record.get("channel"))
         values = aggregates.setdefault(band, {"clients": 0.0, "data_rate_total": 0.0, "data_rate_samples": 0.0})

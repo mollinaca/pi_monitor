@@ -74,6 +74,10 @@ def test_band_aggregation_uses_bounded_band_labels() -> None:
         "5ghz": {"clients": 2.0, "data_rate_total": 866.7, "data_rate_samples": 1.0},
         "unknown": {"clients": 1.0, "data_rate_total": 0.0, "data_rate_samples": 0.0},
     }
+    assert band_aggregates([]) == {
+        "2_4ghz": {"clients": 0.0, "data_rate_total": 0.0, "data_rate_samples": 0.0},
+        "5ghz": {"clients": 0.0, "data_rate_total": 0.0, "data_rate_samples": 0.0},
+    }
 def test_write_metrics_records_failure_without_client_identifiers(tmp_path: Path, monkeypatch) -> None:
     settings = Settings(
         credentials_file=tmp_path / "credentials.toml",
