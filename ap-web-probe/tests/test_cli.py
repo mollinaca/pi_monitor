@@ -18,6 +18,7 @@ def test_parse_wap_payload_accepts_only_numeric_division_expressions() -> None:
     assert parse_wap_payload('{"data_rate":650/10,"channel":44,}') == {"data_rate": 65.0, "channel": 44}
     assert parse_wap_payload('{"status":"ok\t",}') == {"status": "ok\t"}
     assert parse_wap_payload("{status:'ok',}") == {"status": "ok"}
+    assert parse_wap_payload("{display:window.status,channel:44}") == {"display": None, "channel": 44}
 
 
 def test_radio_entries_and_client_count_avoid_identifier_export() -> None:

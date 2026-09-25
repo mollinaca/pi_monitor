@@ -100,6 +100,7 @@ def make_cookie(name: str, value: str, domain: str) -> Cookie:
 
 _NUMERIC_DIVISION = re.compile(r"(?<![A-Za-z0-9_.])-?[0-9]+(?:\.[0-9]+)?\s*/\s*-?[0-9]+(?:\.[0-9]+)?(?![A-Za-z0-9_.])")
 _TRAILING_COMMA = re.compile(r",\s*([}\]])")
+_MEMBER_REFERENCE = re.compile(r"(:\s*)[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)+(?=\s*[,}\]])")
 
 
 def parse_wap_payload(body: str) -> Any:
@@ -120,6 +121,9 @@ def parse_wap_payload(body: str) -> Any:
         return str(float(left) / denominator)
 
     normalized = _NUMERIC_DIVISION.sub(replace_division, payload)
+    # Dashboard responses also contain display-only JavaScript member
+    # references. They are not measurements and are never evaluated.
+    normalized = _MEMBER_REFERENCE.sub(r"\1null", normalized)
     # Some firmware strings contain literal control characters. JavaScript
     # accepts these in the UI payload, whereas strict JSON rejects them.
     return json5.loads(_TRAILING_COMMA.sub(r"\1", normalized))
