@@ -209,8 +209,8 @@ class BrowserWapClient:
         self.driver.execute_script("EncryptPassword()")
         self.wait.until(lambda driver: "/admin.cgi?action=main" in driver.current_url)
 
-    def get_payload(self, action: str) -> Any:
-        self.driver.get(self.target.base_url + f"/admin.cgi?action={action}")
+    def get_payload(self, page: str, action: str) -> Any:
+        self.driver.get(self.target.base_url + f"/admin.cgi?action={page}")
         # WAP150's own UI parses this JavaScript-compatible payload with eval.
         # Run it only in the authenticated AP browser context, then serialize
         # the resulting data back to Python; it is never executed by Python.
@@ -270,7 +270,11 @@ def collect_target(target: Target, credentials: Credentials) -> tuple[Any, Any, 
     client = BrowserWapClient(target, credentials)
     try:
         client.login()
-        return client.get_payload("get_dashboard_info"), client.get_payload("associations_info"), time.monotonic() - started
+        return (
+            client.get_payload("dashboard", "get_dashboard_info"),
+            client.get_payload("associations", "associations_info"),
+            time.monotonic() - started,
+        )
     finally:
         client.close()
 
