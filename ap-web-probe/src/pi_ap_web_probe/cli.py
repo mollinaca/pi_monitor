@@ -261,12 +261,12 @@ class BrowserWapClient:
         self.driver.get(self.target.base_url + "/admin.cgi?action=associations")
         data = self.wait.until(
             lambda driver: driver.execute_script(
-                "return window.allData && Array.isArray(window.allData.clients) ? window.allData.clients : null"
+                "return window.allData && Array.isArray(window.allData.clients) ? {clients: window.allData.clients} : null"
             )
         )
-        if not isinstance(data, list):
+        if not isinstance(data, dict) or not isinstance(data.get("clients"), list):
             raise RuntimeError("AP associations page did not provide a client list")
-        return normalize_client_records(data)
+        return normalize_client_records(data["clients"])
 
     def close(self) -> None:
         try:
