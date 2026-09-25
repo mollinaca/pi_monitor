@@ -94,3 +94,4 @@ def test_write_metrics_records_failure_without_client_identifiers(tmp_path: Path
     }
     assert values["home_ap_web_probe_success"] == 0
     assert "00:11:22:33:44:55" not in output.read_text(encoding="utf-8")
+    assert output.stat().st_mode & 0o777 == 0o644

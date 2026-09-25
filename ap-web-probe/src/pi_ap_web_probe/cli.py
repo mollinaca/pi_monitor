@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import ssl
 import sys
@@ -384,6 +385,10 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
             print(f"AP web probe failed for {target.identifier}: {exc}", file=sys.stderr)
             success.labels(*values).set(0)
     write_to_textfile(str(settings.metrics_path), registry)
+    # The probe runs as root to protect the AP credential, while node_exporter
+    # runs in an unprivileged container.  Prometheus textfiles contain only
+    # aggregate metrics and must remain readable by that container.
+    os.chmod(settings.metrics_path, 0o644)
     return settings.metrics_path
 
 
