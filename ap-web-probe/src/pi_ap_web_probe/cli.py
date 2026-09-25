@@ -212,13 +212,23 @@ class BrowserWapClient:
         self.driver.execute_script("EncryptPassword()")
         self.wait.until(lambda driver: "/admin.cgi?action=main" in driver.current_url)
 
-    def dashboard_client_count(self) -> int:
-        self.driver.get(self.target.base_url + "/admin.cgi?action=dashboard")
-        element = self.wait.until(EC.visibility_of_element_located((By.ID, "total_clients")))
-        match = re.search(r"\d+", element.text)
-        if match is None:
-            raise RuntimeError("AP dashboard did not render a numeric client count")
-        return int(match.group(0))
+    def associated_clients(self) -> list[dict[str, Any]]:
+        """Return the UI's already-evaluated client records.
+
+        The WAP150 serves JavaScript expressions rather than JSON for this
+        page.  Its own browser UI evaluates those expressions and publishes
+        the resulting records as ``allData.clients``.  Reading that value
+        avoids maintaining a partial JavaScript parser in the collector.
+        """
+        self.driver.get(self.target.base_url + "/admin.cgi?action=associations")
+        data = self.wait.until(
+            lambda driver: driver.execute_script(
+                "return window.allData && Array.isArray(window.allData.clients) ? window.allData.clients : null"
+            )
+        )
+        if not isinstance(data, list):
+            raise RuntimeError("AP associations page did not provide a client list")
+        return normalize_client_records(data)
 
     def close(self) -> None:
         try:
@@ -270,15 +280,41 @@ def count_client_records(value: Any) -> int:
     return own + sum(count_client_records(item) for item in value.values())
 
 
+_CLIENT_MAC = re.compile(r"^[0-9a-f]{2}(?::[0-9a-f]{2}){5}$", re.IGNORECASE)
+_CLIENT_STRING_FIELDS = ("ip", "hostname", "ssid", "mode", "uptime", "snr", "channel")
+_CLIENT_NUMBER_FIELDS = ("data_rate", "uplink", "downlink")
+
+
+def normalize_client_records(records: list[Any]) -> list[dict[str, Any]]:
+    """Keep only valid, documented association fields from the AP UI."""
+    normalized: list[dict[str, Any]] = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        mac = record.get("mac")
+        if not isinstance(mac, str) or _CLIENT_MAC.fullmatch(mac.strip()) is None:
+            continue
+        client: dict[str, Any] = {"mac": mac.strip().lower()}
+        for field in _CLIENT_STRING_FIELDS:
+            value = record.get(field)
+            if isinstance(value, str):
+                client[field] = value
+        for field in _CLIENT_NUMBER_FIELDS:
+            value = number(record.get(field))
+            if value is not None:
+                client[field] = value
+        normalized.append(client)
+    return normalized
+
+
 def collect_target(target: Target, credentials: Credentials) -> tuple[Any, Any, float]:
     started = time.monotonic()
     client = BrowserWapClient(target, credentials)
     try:
         client.login()
-        client_count = client.dashboard_client_count()
-        # Do not retain client identifiers. The synthetic records only reuse
-        # the existing aggregation path for the count metric.
-        return {}, {"clients": [{"mac": ""}] * client_count}, time.monotonic() - started
+        # Client details intentionally remain in-process at this stage.  The
+        # textfile collector exports only the aggregate count below.
+        return {}, {"clients": client.associated_clients()}, time.monotonic() - started
     finally:
         client.close()
 

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from prometheus_client.parser import text_string_to_metric_families
 
-from pi_ap_web_probe.cli import Credentials, Settings, Target, count_client_records, number, parse_wap_payload, radio_entries, write_metrics
+from pi_ap_web_probe.cli import Credentials, Settings, Target, count_client_records, normalize_client_records, number, parse_wap_payload, radio_entries, write_metrics
 
 
 def test_number_accepts_plain_numeric_values_only() -> None:
@@ -26,6 +26,37 @@ def test_radio_entries_and_client_count_avoid_identifier_export() -> None:
     associations = {"clients": [{"mac": "00:11:22:33:44:55"}, {"mac": "66:77:88:99:aa:bb"}]}
     assert radio_entries(dashboard) == [("wlan0", {"channel": 1}), ("wlan1", {"channel": 44})]
     assert count_client_records(associations) == 2
+
+
+def test_normalize_client_records_keeps_only_valid_known_fields() -> None:
+    records = [
+        {
+            "mac": "00:11:22:33:44:55",
+            "ip": "192.168.100.50",
+            "hostname": "example-device",
+            "ssid": "example-ssid",
+            "channel": "44",
+            "snr": "35",
+            "data_rate": "650/10",
+            "uplink": 123,
+            "downlink": 456,
+            "unexpected": "not retained",
+        },
+        {"mac": "not-a-mac", "hostname": "ignored"},
+        "not-a-record",
+    ]
+    assert normalize_client_records(records) == [
+        {
+            "mac": "00:11:22:33:44:55",
+            "ip": "192.168.100.50",
+            "hostname": "example-device",
+            "ssid": "example-ssid",
+            "channel": "44",
+            "snr": "35",
+            "uplink": 123.0,
+            "downlink": 456.0,
+        }
+    ]
 
 
 def test_write_metrics_records_failure_without_client_identifiers(tmp_path: Path, monkeypatch) -> None:
