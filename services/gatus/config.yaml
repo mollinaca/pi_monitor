@@ -27,14 +27,14 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: cloudflare-dns-ip
-    group: 02-INTERNET
+    group: 02-INTERNET_SERVICE
     url: "icmp://1.1.1.1"
     interval: 5m
     conditions:
       - "[CONNECTED] == true"
 
   - name: cloudflare-dns-query
-    group: 02-INTERNET
+    group: 02-INTERNET_SERVICE
     url: "1.1.1.1"
     interval: 5m
     dns:
@@ -45,7 +45,7 @@ endpoints:
       - "[BODY] == pat(*.*.*.*)"
 
   - name: yahoo-japan
-    group: 02-INTERNET
+    group: 02-INTERNET_SERVICE
     url: "https://www.yahoo.co.jp/"
     interval: 5m
     method: HEAD
@@ -54,7 +54,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: google
-    group: 02-INTERNET
+    group: 02-INTERNET_SERVICE
     url: "https://www.google.com/"
     interval: 5m
     method: HEAD
@@ -63,7 +63,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: github
-    group: 02-INTERNET
+    group: 02-INTERNET_SERVICE
     url: "https://github.com/"
     interval: 5m
     method: HEAD
@@ -72,7 +72,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: x
-    group: 02-INTERNET
+    group: 02-INTERNET_SERVICE
     url: "https://x.com/"
     interval: 5m
     method: HEAD
@@ -81,7 +81,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: discord
-    group: 02-INTERNET
+    group: 02-INTERNET_SERVICE
     url: "https://discord.com/"
     interval: 5m
     method: HEAD
@@ -93,7 +93,7 @@ endpoints:
   # Requesting one byte verifies DNS, TCP, TLS, and HTTP without downloading
   # the 100 MB test file.
   - name: us-west-hillsboro
-    group: 02-INTERNET
+    group: 03-INTERNET_REGIONS
     url: "https://hil-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
@@ -103,7 +103,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: us-east-ashburn
-    group: 02-INTERNET
+    group: 03-INTERNET_REGIONS
     url: "https://ash-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
@@ -113,7 +113,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: eu-central-falkenstein
-    group: 02-INTERNET
+    group: 03-INTERNET_REGIONS
     url: "https://fsn1-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
@@ -123,7 +123,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: eu-north-helsinki
-    group: 02-INTERNET
+    group: 03-INTERNET_REGIONS
     url: "https://hel1-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
@@ -133,7 +133,7 @@ endpoints:
       - "[CONNECTED] == true"
 
   - name: asia-southeast-singapore
-    group: 02-INTERNET
+    group: 03-INTERNET_REGIONS
     url: "https://sin-speed.hetzner.com/100MB.bin"
     interval: 5m
     headers:
