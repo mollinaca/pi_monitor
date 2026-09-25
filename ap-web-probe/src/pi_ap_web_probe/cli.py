@@ -14,6 +14,7 @@ from typing import Any
 from urllib.parse import urlencode
 from urllib.request import HTTPCookieProcessor, HTTPSHandler, Request, build_opener
 
+import json5
 from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
 
 
@@ -121,7 +122,7 @@ def parse_wap_payload(body: str) -> Any:
     normalized = _NUMERIC_DIVISION.sub(replace_division, payload)
     # Some firmware strings contain literal control characters. JavaScript
     # accepts these in the UI payload, whereas strict JSON rejects them.
-    return json.loads(_TRAILING_COMMA.sub(r"\1", normalized), strict=False)
+    return json5.loads(_TRAILING_COMMA.sub(r"\1", normalized))
 
 
 class WapClient:
