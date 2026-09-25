@@ -1,0 +1,17 @@
+[Unit]
+Description=Fixed-server internet speed metrics probe
+Wants=network-online.target
+After=network-online.target local-fs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/mnt/data/pi_monitor/internet-speed-probe
+ExecStart=/mnt/data/pi_monitor/internet-speed-probe/.venv/bin/pi-internet-speed-probe --config /mnt/data/pi_monitor/internet-speed-probe/config/probe.toml
+Environment=PYTHONUNBUFFERED=1
+UMask=0022
+TimeoutStartSec=3min
+Nice=19
+IOSchedulingClass=idle
+NoNewPrivileges=true

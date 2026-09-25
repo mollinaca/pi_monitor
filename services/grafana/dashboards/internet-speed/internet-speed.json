@@ -1,0 +1,53 @@
+{
+  "annotations": { "list": [] },
+  "description": "Fixed-server Ookla Speedtest results from the Raspberry Pi eth0 interface. Tests run every 30 minutes and deliberately use substantial bandwidth; this dashboard shows the connection performance from the wired Pi location, not Wi-Fi throughput.",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" }, "mappings": [ { "options": { "0": { "color": "red", "text": "NG" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 0 }, "id": 1,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
+      "targets": [ { "expr": "home_internet_speedtest_probe_success{job=\"internet-speed\"}", "refId": "A" } ], "title": "Latest fixed-server test", "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "unit": "dateTimeAsLocal" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 9, "x": 6, "y": 0 }, "id": 2,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
+      "targets": [ { "expr": "home_internet_speedtest_probe_timestamp_seconds{job=\"internet-speed\"}", "refId": "A" } ], "title": "Last test attempt", "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "Bps" }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 7 }, "id": 3,
+      "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_internet_speedtest_download_bytes_per_second{job=\"internet-speed\"}", "legendFormat": "download", "refId": "A" }, { "expr": "home_internet_speedtest_upload_bytes_per_second{job=\"internet-speed\"}", "legendFormat": "upload", "refId": "B" } ], "title": "Internet throughput (fixed Tokyo server)", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "ms" }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 16 }, "id": 4,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_internet_speedtest_ping_latency_milliseconds{job=\"internet-speed\"}", "legendFormat": "idle latency", "refId": "A" }, { "expr": "home_internet_speedtest_ping_jitter_milliseconds{job=\"internet-speed\"}", "legendFormat": "jitter", "refId": "B" } ], "title": "Idle latency and jitter", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "bars", "lineWidth": 1, "pointSize": 4, "showPoints": "never" }, "unit": "decbytes" }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 16 }, "id": 5,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_internet_speedtest_downloaded_bytes{job=\"internet-speed\"}", "legendFormat": "download test data", "refId": "A" }, { "expr": "home_internet_speedtest_uploaded_bytes{job=\"internet-speed\"}", "legendFormat": "upload test data", "refId": "B" } ], "title": "Traffic generated per test", "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 25 }, "id": 6,
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Measurement scope\n\n- Ookla Speedtest runs every 30 minutes from the Pi's **wired eth0** interface to the fixed Tokyo server **IPA CyberLab 400G** (ID `48463`).\n- Each test intentionally consumes considerable download and upload bandwidth. The throughput series is for trend monitoring; it is not a Wi-Fi throughput test.\n- A failed test can indicate the fixed server, the internet path, or the Pi itself. Use Gatus reachability checks alongside this panel before identifying a line outage.", "mode": "markdown" }, "pluginVersion": "13.2.2", "title": "About this measurement", "type": "text"
+    }
+  ],
+  "refresh": "1m", "schemaVersion": 42, "tags": [ "internet", "speedtest", "ookla" ], "templating": { "list": [] },
+  "time": { "from": "now-24h", "to": "now" }, "timepicker": {}, "timezone": "browser", "title": "Internet Speed", "uid": "internet-speed", "version": 1
+}

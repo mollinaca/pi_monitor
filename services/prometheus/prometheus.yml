@@ -48,6 +48,20 @@ scrape_configs:
         regex: home_ssd_smart_.+
         action: keep
 
+  - job_name: internet-speed
+    # The Ookla test is independently scheduled every 30 minutes. This job
+    # only reads its textfile output and never generates test traffic itself.
+    scrape_interval: 1m
+    static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          host: raspberry-pi
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: home_internet_speedtest_.+
+        action: keep
+
   - job_name: gatus
     static_configs:
       - targets:

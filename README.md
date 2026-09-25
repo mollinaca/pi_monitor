@@ -56,6 +56,21 @@ LAN内は30秒間隔、インターネット上の対象は5分間隔で監視�
 
 Gatusの履歴は、外部ストレージ上の `/mnt/data/pi_monitor/data/gatus/gatus.db` に保存します。
 
+## インターネット回線速度
+
+Ookla Speedtest CLIをPiホスト上で実行し、固定した東京の測定サーバー（ID `48463`）に対する下り・上り速度、idle latency、jitter、試験通信量、成否を収集します。Piの通常経路である有線`eth0`へ明示的にバインドするため、これは有線LAN地点から見たインターネット接続性能です。Wi-Fi区間の実効速度を表すものではありません。
+
+速度試験は帯域と通信量を大きく使うため、Prometheusのscrapeでは実行しません。`pi-internet-speed-probe.timer` が毎時00分・30分に実行し、結果を `data/node-exporter/textfile/internet-speed.prom` へ出力します。Prometheusの`internet-speed`ジョブは1分ごとに既存のTextfileを読むだけです。
+
+導入後は手動実行で結果を確認してからtimerを有効化します。
+
+```bash
+sudo ./scripts/install-internet-speed-probe.sh
+sudo systemctl start pi-internet-speed-probe.service
+journalctl -u pi-internet-speed-probe.service -n 50 --no-pager
+sudo systemctl enable --now pi-internet-speed-probe.timer
+```
+
 ## Raspberry Piへの配置
 
 ```bash

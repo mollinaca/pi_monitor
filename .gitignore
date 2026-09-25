@@ -3,6 +3,7 @@
 /logs/
 /wifi-probe/.venv/
 /ssd-smart-probe/.venv/
+/internet-speed-probe/.venv/
 .pytest_cache/
 __pycache__/
 *.pyc
