@@ -48,5 +48,5 @@
     }
   ],
   "refresh": "1m", "schemaVersion": 42, "tags": [ "internet", "speedtest", "ookla" ], "templating": { "list": [] },
-  "time": { "from": "now-24h", "to": "now" }, "timepicker": {}, "timezone": "browser", "title": "Internet Speed", "uid": "internet-speed-monitoring", "version": 1
+  "time": { "from": "now-24h", "to": "now" }, "timepicker": {}, "timezone": "browser", "title": "Internet Speed", "uid": "internet-speed", "version": 1
 }

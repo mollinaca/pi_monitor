@@ -4,7 +4,7 @@ providers:
   - name: internet-speed
     orgId: 1
     folder: Internet Speed
-    folderUid: internet-speed
+    folderUid: internet-speed-folder
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
