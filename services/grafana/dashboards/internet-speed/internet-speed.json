@@ -29,14 +29,14 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "Bps" }, "overrides": [] },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 }, "id": 3,
       "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_internet_speedtest_download_bytes_per_second{job=\"internet-speed\"}", "legendFormat": "download", "refId": "A" }, { "expr": "home_internet_speedtest_upload_bytes_per_second{job=\"internet-speed\"}", "legendFormat": "upload", "refId": "B" } ], "title": "Internet throughput", "type": "timeseries"
+      "targets": [ { "expr": "last_over_time(home_internet_speedtest_download_bytes_per_second{job=\"internet-speed\"}[35m])", "legendFormat": "download", "refId": "A" }, { "expr": "last_over_time(home_internet_speedtest_upload_bytes_per_second{job=\"internet-speed\"}[35m])", "legendFormat": "upload", "refId": "B" } ], "title": "Internet throughput", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "ms" }, "overrides": [] },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 24 }, "id": 4,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_internet_speedtest_ping_latency_milliseconds{job=\"internet-speed\"}", "legendFormat": "idle latency", "refId": "A" }, { "expr": "home_internet_speedtest_ping_jitter_milliseconds{job=\"internet-speed\"}", "legendFormat": "jitter", "refId": "B" } ], "title": "Idle latency and jitter", "type": "timeseries"
+      "targets": [ { "expr": "last_over_time(home_internet_speedtest_ping_latency_milliseconds{job=\"internet-speed\"}[35m])", "legendFormat": "idle latency", "refId": "A" }, { "expr": "last_over_time(home_internet_speedtest_ping_jitter_milliseconds{job=\"internet-speed\"}[35m])", "legendFormat": "jitter", "refId": "B" } ], "title": "Idle latency and jitter", "type": "timeseries"
     },
     {
       "gridPos": { "h": 7, "w": 16, "x": 8, "y": 0 }, "id": 6,
