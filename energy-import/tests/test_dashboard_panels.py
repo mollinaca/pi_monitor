@@ -19,9 +19,10 @@ class DashboardPanelTests(unittest.TestCase):
         rows = list(csv.DictReader(panel["targets"][0]["csvContent"].splitlines()))
         self.assertEqual(panel["id"], 3)
         self.assertEqual(panel["fieldConfig"]["defaults"]["unit"], "kWh")
+        self.assertEqual(panel["fieldConfig"]["defaults"]["custom"]["barWidthFactor"], 0.25)
         self.assertEqual(rows, [
-            {"Time": "2022-01-01", "actual": "120", "in_progress": "", "forecast": ""},
-            {"Time": "2026-09-01", "actual": "", "in_progress": "", "forecast": "130"},
+            {"Time": "2022-01-15", "actual": "120", "in_progress": "", "forecast": ""},
+            {"Time": "2026-09-15", "actual": "", "in_progress": "", "forecast": "130"},
         ])
 
     def test_monthly_gas_is_independent_from_electricity(self) -> None:
