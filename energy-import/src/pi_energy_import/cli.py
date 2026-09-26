@@ -18,7 +18,7 @@ DATASETS = {
     "日別使用量": ("daily-electricity.csv", ["kind", "date", "usage", "unit", "status"]),
 }
 
-WATER_COLUMNS = ["display_month", "meter_reading_date", "period_start", "period_end", "water_m3", "sewer_m3", "previous_water_m3", "prior_year_water_m3", "water_fee_yen", "sewer_fee_yen", "total_fee_yen"]
+WATER_COLUMNS = ["display_month", "meter_reading_date", "billing_months", "period_start", "period_end", "water_m3", "sewer_m3", "previous_water_m3", "prior_year_water_m3", "water_fee_yen", "sewer_fee_yen", "total_fee_yen"]
 
 
 def iso(value: object) -> str:
@@ -70,7 +70,7 @@ def write_csv(destination: Path, columns: list[str], rows: list[dict[str, str]])
 
 
 def water_rows(source: Path) -> list[dict[str, str]]:
-    names = {"表示月": "display_month", "検針日": "meter_reading_date", "使用期間": "period", "水道使用量_㎥": "water_m3", "下水道使用量_㎥": "sewer_m3", "前回水道使用量_㎥": "previous_water_m3", "前年同期水道使用量_㎥": "prior_year_water_m3", "水道料金_円": "water_fee_yen", "下水道使用料_円": "sewer_fee_yen", "料金合計_円": "total_fee_yen"}
+    names = {"表示月": "display_month", "検針日": "meter_reading_date", "使用期間": "period", "納入年月分": "billing_months", "水道使用量_㎥": "water_m3", "下水道使用量_㎥": "sewer_m3", "前回水道使用量_㎥": "previous_water_m3", "前年同期水道使用量_㎥": "prior_year_water_m3", "水道料金_円": "water_fee_yen", "下水道使用料_円": "sewer_fee_yen", "料金合計_円": "total_fee_yen"}
     with source.open(encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
         if reader.fieldnames is None or any(column not in reader.fieldnames for column in names):
@@ -123,12 +123,21 @@ def selected_csv(rows: list[dict[str, str]], time_field: str, fields: list[str])
     )
 
 
+def water_panel(panel_id: int, title: str, content: str, y: int, unit: str, names: dict[str, str]) -> dict:
+    return {"id": panel_id, "type": "barchart", "title": title,
+        "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"},
+        "gridPos": {"h": 10, "w": 24, "x": 0, "y": y},
+        "fieldConfig": {"defaults": {"unit": unit}, "overrides": [{"matcher": {"id": "byName", "options": field}, "properties": [{"id": "displayName", "value": label}]} for field, label in names.items()]},
+        "options": {"orientation": "auto", "showValue": "auto", "stacking": "none", "xField": "Period", "legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}},
+        "targets": [testdata_target("A", content)]}
+
+
 def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]], destination: Path) -> None:
     daily = series_csv(rows["日別使用量"], "date", "status")
     monthly_electric = series_csv([r for r in rows["月別使用量"] if r["kind"] == "電気"], "period_end", "status")
     monthly_gas = series_csv([r for r in rows["月別使用量"] if r["kind"] == "ガス"], "display_month", "status")
-    water_usage = selected_csv(water, "meter_reading_date", ["water_m3", "sewer_m3"])
-    water_cost = selected_csv(water, "meter_reading_date", ["water_fee_yen", "sewer_fee_yen", "total_fee_yen"])
+    water_usage = selected_csv(water, "billing_months", ["water_m3", "sewer_m3"]).replace("Time,", "Period,", 1)
+    water_cost = selected_csv(water, "billing_months", ["water_fee_yen", "sewer_fee_yen", "total_fee_yen"]).replace("Time,", "Period,", 1)
     body = {
         "annotations": {"list": []}, "editable": False,
         "description": "Private electricity and gas history imported manually from the provider portal.",
@@ -137,8 +146,8 @@ def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]]
             panel(2, "Daily electricity usage", daily, 5, "kWh"),
             panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh", 80),
             panel(4, "Monthly gas usage", monthly_gas, 25, "m3", 80, 0.15),
-            panel(5, "Water and sewer usage", water_usage, 35, "m3", 80, 0.5),
-            panel(6, "Water and sewer charges", water_cost, 45, "currencyJPY", 80, 0.5),
+            water_panel(5, "Water and sewer usage", water_usage, 35, "m3", {"water_m3": "Water", "sewer_m3": "Sewer"}),
+            water_panel(6, "Water and sewer charges", water_cost, 45, "prefix:￥", {"water_fee_yen": "Water", "sewer_fee_yen": "Sewer", "total_fee_yen": "Total"}),
         ],
         "schemaVersion": 42, "tags": ["energy", "electricity", "gas"],
         "time": {"from": "now-1y", "to": "now"}, "timezone": "browser",
