@@ -46,25 +46,29 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "unit": "bps", "min": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "Mbps", "min": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 14 }, "id": 7,
       "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [
-        { "expr": "rate(home_router_interface_counter{job=\"router\",counter=\"receive_bytes\"}[$__rate_interval]) * 8", "legendFormat": "{{interface}} receive", "refId": "A" },
-        { "expr": "rate(home_router_interface_counter{job=\"router\",counter=\"transmit_bytes\"}[$__rate_interval]) * 8", "legendFormat": "{{interface}} transmit", "refId": "B" }
-      ], "title": "LAN traffic by router interface", "type": "timeseries"
+      "targets": [ { "expr": "rate(home_router_interface_counter{job=\"router\",counter=\"receive_bytes\"}[$__rate_interval]) * 8 / 1000000", "legendFormat": "{{interface}} receive", "refId": "A" } ], "title": "LAN receive traffic by router interface", "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "Mbps", "min": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 14 }, "id": 11,
+      "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "rate(home_router_interface_counter{job=\"router\",counter=\"transmit_bytes\"}[$__rate_interval]) * 8 / 1000000", "legendFormat": "{{interface}} transmit", "refId": "A" } ], "title": "LAN transmit traffic by router interface", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "none", "decimals": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto", "axisSoftMin": 0 } }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 14 }, "id": 8,
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 23 }, "id": 8,
       "options": { "legend": { "calcs": ["lastNotNull", "min", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [{ "expr": "home_router_table_entries{job=\"router\"}", "legendFormat": "{{table}}", "refId": "A" }], "title": "DHCP, ARP, and switching-MAC table entries", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 }, "id": 9,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 }, "id": 9,
       "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [
         { "expr": "home_router_cpu_utilization_percent{job=\"router\"}", "legendFormat": "CPU", "refId": "A" },
@@ -74,7 +78,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "s", "min": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 }, "id": 10,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 }, "id": 10,
       "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [{ "expr": "home_router_probe_duration_seconds{job=\"router\"}", "legendFormat": "read duration", "refId": "A" }], "title": "Router read duration", "type": "timeseries"
     }
