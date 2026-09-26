@@ -120,7 +120,11 @@ def series_csv(rows: list[dict[str, str]], time_field: str, status_field: str) -
 def monthly_category_csv(rows: list[dict[str, str]], date_field: str) -> str:
     names = {"表示実績": "actual", "集計途中": "in_progress", "予測": "forecast"}
     points: dict[str, dict[str, str]] = {}
+    cutoff = date.today().replace(day=1)
+    cutoff = date(cutoff.year - 1, cutoff.month, 1)
     for row in rows:
+        if date.fromisoformat(row[date_field]) < cutoff:
+            continue
         point = points.setdefault(row[date_field][:7], {})
         point[names.get(row["status"], row["status"])] = row["usage"]
     columns = ["Period", "actual", "in_progress", "forecast"]
@@ -155,7 +159,7 @@ def monthly_panel(panel_id: int, title: str, content: str, y: int, unit: str) ->
 
 def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]], destination: Path) -> None:
     daily = series_csv(rows["日別使用量"], "date", "status")
-    monthly_electric = series_csv([r for r in rows["月別使用量"] if r["kind"] == "電気"], "period_end", "status")
+    monthly_electric = monthly_category_csv([r for r in rows["月別使用量"] if r["kind"] == "電気"], "period_end")
     monthly_gas = monthly_category_csv([r for r in rows["月別使用量"] if r["kind"] == "ガス"], "display_month")
     electricity_charge = selected_csv([r for r in rows["請求明細"] if r["kind"] == "電気"], "billing_month", ["charge_yen"]).replace("charge_yen", "Charge", 1)
     gas_charge = selected_csv([r for r in rows["請求明細"] if r["kind"] == "ガス"], "billing_month", ["charge_yen"]).replace("charge_yen", "Charge", 1)
@@ -167,7 +171,7 @@ def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]]
         "panels": [
             {"id": 1, "type": "text", "title": "About this dashboard", "gridPos": {"h": 5, "w": 24, "x": 0, "y": 0}, "options": {"mode": "markdown", "content": "### Electricity & gas usage\n\n- Updated manually from the provider portal; this is not live telemetry.\n- **Actual**, **in progress**, and **forecast** values must not be added together.\n- Electricity uses each record's period end date. Gas uses the provider display month on the first day of that month."}},
             panel(2, "Daily electricity usage", daily, 5, "kWh"),
-            panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh", 80, 0.2),
+            monthly_panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh"),
             monthly_panel(4, "Monthly gas usage", monthly_gas, 25, "m3"),
             panel(7, "Electricity charges", electricity_charge, 35, "prefix:￥", 80, 0.5),
             panel(8, "Gas charges", gas_charge, 45, "prefix:￥", 80, 0.5),
