@@ -10,8 +10,26 @@
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "dateTimeAsLocal" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 0 },
+      "id": 10,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
+      "targets": [ { "expr": "max(timestamp(gatus_results_endpoint_success)) * 1000", "refId": "A" } ],
+      "title": "Last check attempt",
+      "type": "stat"
+    },
+    {
+      "gridPos": { "h": 7, "w": 16, "x": 8, "y": 0 },
+      "id": 11,
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### About this dashboard\n\n- Gatus checks the router and access points every **30 seconds**.\n- Internet services and regional endpoints are checked every **five minutes**.\n- The timelines show each endpoint's health; response time and selected-range availability are shown separately below.", "mode": "markdown" },
+      "pluginVersion": "13.2.2",
+      "title": "About this dashboard",
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "fixedColor": "green", "mode": "fixed" }, "mappings": [ { "options": { "0": { "color": "red", "text": "NG" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 7 },
       "id": 1,
       "options": { "alignValue": "center", "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "mergeValues": true, "rowHeight": 0.9, "showValue": "always", "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "gatus_results_endpoint_success{group=\"01-LAN\", name=~\"$endpoint\"}", "legendFormat": "{{name}}", "refId": "A" } ],
@@ -21,7 +39,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "fixedColor": "green", "mode": "fixed" }, "mappings": [ { "options": { "0": { "color": "red", "text": "NG" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 15 },
       "id": 2,
       "options": { "alignValue": "center", "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "mergeValues": true, "rowHeight": 0.9, "showValue": "always", "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "gatus_results_endpoint_success{group=\"02-INTERNET_SERVICE\", name=~\"$endpoint\"}", "legendFormat": "{{name}}", "refId": "A" } ],
@@ -31,7 +49,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "fixedColor": "green", "mode": "fixed" }, "mappings": [ { "options": { "0": { "color": "red", "text": "NG" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 18 },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 25 },
       "id": 6,
       "options": { "alignValue": "center", "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "mergeValues": true, "rowHeight": 0.9, "showValue": "always", "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "gatus_results_endpoint_success{group=\"03-INTERNET_REGIONS\", name=~\"$endpoint\"}", "legendFormat": "{{name}}", "refId": "A" } ],
@@ -41,7 +59,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 8, "x": 0, "y": 30 },
+      "gridPos": { "h": 9, "w": 8, "x": 0, "y": 37 },
       "id": 3,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "gatus_results_duration_seconds{group=\"01-LAN\", name=~\"$endpoint\"}", "legendFormat": "{{name}}", "refId": "A" } ],
@@ -51,7 +69,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 8, "x": 8, "y": 30 },
+      "gridPos": { "h": 9, "w": 8, "x": 8, "y": 37 },
       "id": 4,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "gatus_results_duration_seconds{group=\"02-INTERNET_SERVICE\", name=~\"$endpoint\"}", "legendFormat": "{{name}}", "refId": "A" } ],
@@ -61,7 +79,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 30 },
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 37 },
       "id": 8,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "gatus_results_duration_seconds{group=\"03-INTERNET_REGIONS\", name=~\"$endpoint\"}", "legendFormat": "{{name}}", "refId": "A" } ],
@@ -71,7 +89,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 3, "max": 100, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 99 }, { "color": "green", "value": 99.9 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 8, "x": 8, "y": 39 },
+      "gridPos": { "h": 9, "w": 8, "x": 8, "y": 46 },
       "id": 5,
       "options": { "displayMode": "gradient", "minVizWidth": 20, "minVizHeight": 16, "namePlacement": "left", "orientation": "horizontal", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showUnfilled": true, "sizing": "auto", "valueMode": "color" },
       "targets": [ { "expr": "avg_over_time(gatus_results_endpoint_success{group=\"02-INTERNET_SERVICE\", name=~\"$endpoint\"}[$__range]) * 100", "instant": true, "legendFormat": "{{name}}", "refId": "A" } ],
@@ -81,7 +99,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 3, "max": 100, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 99 }, { "color": "green", "value": 99.9 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 39 },
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 46 },
       "id": 7,
       "options": { "displayMode": "gradient", "minVizWidth": 20, "minVizHeight": 16, "namePlacement": "left", "orientation": "horizontal", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showUnfilled": true, "sizing": "auto", "valueMode": "color" },
       "targets": [ { "expr": "avg_over_time(gatus_results_endpoint_success{group=\"03-INTERNET_REGIONS\", name=~\"$endpoint\"}[$__range]) * 100", "instant": true, "legendFormat": "{{name}}", "refId": "A" } ],
@@ -91,7 +109,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 3, "max": 100, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 99 }, { "color": "green", "value": 99.9 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 8, "x": 0, "y": 39 },
+      "gridPos": { "h": 9, "w": 8, "x": 0, "y": 46 },
       "id": 9,
       "options": { "displayMode": "gradient", "minVizWidth": 20, "minVizHeight": 16, "namePlacement": "left", "orientation": "horizontal", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showUnfilled": true, "sizing": "auto", "valueMode": "color" },
       "targets": [ { "expr": "avg_over_time(gatus_results_endpoint_success{group=\"01-LAN\", name=~\"$endpoint\"}[$__range]) * 100", "instant": true, "legendFormat": "{{name}}", "refId": "A" } ],
