@@ -5,10 +5,10 @@
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Bps" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Mbps" }, "overrides": [] },
       "gridPos": { "h": 7, "w": 12, "x": 0, "y": 7 }, "id": 1,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
-      "targets": [ { "expr": "home_internet_speedtest_download_bytes_per_second{job=\"internet-speed\"}", "refId": "A" } ], "title": "Latest download", "type": "stat"
+      "targets": [ { "expr": "home_internet_speedtest_download_bytes_per_second{job=\"internet-speed\"} * 8 / 1000000", "refId": "A" } ], "title": "Latest download", "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -19,17 +19,17 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Bps" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Mbps" }, "overrides": [] },
       "gridPos": { "h": 7, "w": 12, "x": 12, "y": 7 }, "id": 5,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
-      "targets": [ { "expr": "home_internet_speedtest_upload_bytes_per_second{job=\"internet-speed\"}", "refId": "A" } ], "title": "Latest upload", "type": "stat"
+      "targets": [ { "expr": "home_internet_speedtest_upload_bytes_per_second{job=\"internet-speed\"} * 8 / 1000000", "refId": "A" } ], "title": "Latest upload", "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "Bps" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "Mbps" }, "overrides": [] },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 }, "id": 3,
       "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "last_over_time(home_internet_speedtest_download_bytes_per_second{job=\"internet-speed\"}[35m])", "legendFormat": "download", "refId": "A" }, { "expr": "last_over_time(home_internet_speedtest_upload_bytes_per_second{job=\"internet-speed\"}[35m])", "legendFormat": "upload", "refId": "B" } ], "title": "Internet throughput", "type": "timeseries"
+      "targets": [ { "expr": "last_over_time(home_internet_speedtest_download_bytes_per_second{job=\"internet-speed\"}[35m]) * 8 / 1000000", "legendFormat": "download", "refId": "A" }, { "expr": "last_over_time(home_internet_speedtest_upload_bytes_per_second{job=\"internet-speed\"}[35m]) * 8 / 1000000", "legendFormat": "upload", "refId": "B" } ], "title": "Internet throughput", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
