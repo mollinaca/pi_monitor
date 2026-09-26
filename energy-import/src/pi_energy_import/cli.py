@@ -127,7 +127,7 @@ def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]]
     daily = series_csv(rows["日別使用量"], "date", "status")
     monthly_electric = series_csv([r for r in rows["月別使用量"] if r["kind"] == "電気"], "period_end", "status")
     monthly_gas = series_csv([r for r in rows["月別使用量"] if r["kind"] == "ガス"], "display_month", "status")
-    water_usage = selected_csv(water, "meter_reading_date", ["water_m3", "sewer_m3", "previous_water_m3", "prior_year_water_m3"])
+    water_usage = selected_csv(water, "meter_reading_date", ["water_m3", "sewer_m3"])
     water_cost = selected_csv(water, "meter_reading_date", ["water_fee_yen", "sewer_fee_yen", "total_fee_yen"])
     body = {
         "annotations": {"list": []}, "editable": False,
