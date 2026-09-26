@@ -66,6 +66,11 @@
       "targets": [{ "expr": "home_router_table_entries{job=\"router\"}", "legendFormat": "{{table}}", "refId": "A" }], "title": "DHCP, ARP, and switching-MAC table entries", "type": "timeseries"
     },
     {
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 23 }, "id": 12,
+      "options": { "content": "### What these table counts mean\n\n- **DHCP:** leases issued by the router. A lease can remain after a device has gone offline.\n- **ARP:** recently learned IP-address-to-MAC-address mappings. This is a cache, so entries can expire when a device stops communicating.\n- **switching-hub MAC:** MAC addresses currently learned by the router's built-in switch. Devices behind an access point can appear on the AP's switch port.\n\nThe series are counts, not a live client inventory. Use abrupt changes as a prompt to investigate; they do not by themselves prove a fault.", "mode": "markdown" },
+      "title": "About router inventory tables", "type": "text"
+    },
+    {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 }, "id": 9,
