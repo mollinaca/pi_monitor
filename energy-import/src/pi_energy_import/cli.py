@@ -18,6 +18,8 @@ DATASETS = {
     "日別使用量": ("daily-electricity.csv", ["kind", "date", "usage", "unit", "status"]),
 }
 
+WATER_COLUMNS = ["display_month", "meter_reading_date", "period_start", "period_end", "water_m3", "sewer_m3", "previous_water_m3", "prior_year_water_m3", "water_fee_yen", "sewer_fee_yen", "total_fee_yen"]
+
 
 def iso(value: object) -> str:
     if isinstance(value, datetime):
@@ -67,6 +69,25 @@ def write_csv(destination: Path, columns: list[str], rows: list[dict[str, str]])
     temporary.replace(destination)
 
 
+def water_rows(source: Path) -> list[dict[str, str]]:
+    names = {"表示月": "display_month", "検針日": "meter_reading_date", "使用期間": "period", "水道使用量_㎥": "water_m3", "下水道使用量_㎥": "sewer_m3", "前回水道使用量_㎥": "previous_water_m3", "前年同期水道使用量_㎥": "prior_year_water_m3", "水道料金_円": "water_fee_yen", "下水道使用料_円": "sewer_fee_yen", "料金合計_円": "total_fee_yen"}
+    with source.open(encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if reader.fieldnames is None or any(column not in reader.fieldnames for column in names):
+            raise ValueError("water CSV has unexpected columns")
+        result: list[dict[str, str]] = []
+        for raw in reader:
+            start, separator, end = raw["使用期間"].partition(" ～ ")
+            if not separator:
+                raise ValueError(f"water CSV has invalid period: {raw['使用期間']}")
+            row = {field: raw[japanese].strip() for japanese, field in names.items() if field != "period"}
+            row["period_start"], row["period_end"] = start, end
+            result.append(row)
+    if not result:
+        raise ValueError("water CSV has no data rows")
+    return result
+
+
 def testdata_target(ref_id: str, content: str) -> dict:
     return {"refId": ref_id, "scenarioId": "csv_content", "csvContent": content}
 
@@ -96,10 +117,18 @@ def series_csv(rows: list[dict[str, str]], time_field: str, status_field: str) -
     )
 
 
-def dashboard(rows: dict[str, list[dict[str, str]]], destination: Path) -> None:
+def selected_csv(rows: list[dict[str, str]], time_field: str, fields: list[str]) -> str:
+    return "Time," + ",".join(fields) + "\n" + "\n".join(
+        ",".join([row[time_field]] + [row[field] for field in fields]) for row in rows
+    )
+
+
+def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]], destination: Path) -> None:
     daily = series_csv(rows["日別使用量"], "date", "status")
     monthly_electric = series_csv([r for r in rows["月別使用量"] if r["kind"] == "電気"], "period_end", "status")
     monthly_gas = series_csv([r for r in rows["月別使用量"] if r["kind"] == "ガス"], "display_month", "status")
+    water_usage = selected_csv(water, "meter_reading_date", ["water_m3", "sewer_m3", "previous_water_m3", "prior_year_water_m3"])
+    water_cost = selected_csv(water, "meter_reading_date", ["water_fee_yen", "sewer_fee_yen", "total_fee_yen"])
     body = {
         "annotations": {"list": []}, "editable": False,
         "description": "Private electricity and gas history imported manually from the provider portal.",
@@ -108,6 +137,8 @@ def dashboard(rows: dict[str, list[dict[str, str]]], destination: Path) -> None:
             panel(2, "Daily electricity usage", daily, 5, "kWh"),
             panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh", 80),
             panel(4, "Monthly gas usage", monthly_gas, 25, "m3", 80, 0.15),
+            panel(5, "Water and sewer usage", water_usage, 35, "m3", 80, 0.5),
+            panel(6, "Water and sewer charges", water_cost, 45, "currencyJPY", 80, 0.5),
         ],
         "schemaVersion": 42, "tags": ["energy", "electricity", "gas"],
         "time": {"from": "now-1y", "to": "now"}, "timezone": "browser",
@@ -134,6 +165,7 @@ def main() -> None:
     parser.add_argument("--data-directory", type=Path, default=Path("data/energy"))
     parser.add_argument("--dashboard", type=Path, default=Path("services/grafana/dashboards/energy/energy-usage.json"))
     parser.add_argument("--metrics", type=Path, default=Path("data/node-exporter/textfile/energy-import.prom"))
+    parser.add_argument("--water-csv", type=Path)
     args = parser.parse_args()
     workbook = load_workbook(args.workbook, data_only=True, read_only=True)
     imported: dict[str, list[dict[str, str]]] = {}
@@ -143,8 +175,20 @@ def main() -> None:
     for sheet_name, (filename, columns) in DATASETS.items():
         imported[sheet_name] = rows_for_sheet(workbook[sheet_name], columns)
         write_csv(args.data_directory / filename, columns, imported[sheet_name])
-    dashboard(imported, args.dashboard)
-    write_metrics(args.metrics, {name: len(rows) for name, rows in imported.items()})
+    water_destination = args.data_directory.parent / "water" / "water-usage.csv"
+    water_destination.parent.mkdir(parents=True, exist_ok=True)
+    if args.water_csv:
+        water = water_rows(args.water_csv)
+        write_csv(water_destination, WATER_COLUMNS, water)
+    elif water_destination.exists():
+        with water_destination.open(encoding="utf-8", newline="") as handle:
+            water = list(csv.DictReader(handle))
+    else:
+        water = []
+    dashboard(imported, water, args.dashboard)
+    counts = {name: len(rows) for name, rows in imported.items()}
+    counts["水道"] = len(water)
+    write_metrics(args.metrics, counts)
 
 
 if __name__ == "__main__":

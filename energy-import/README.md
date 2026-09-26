@@ -8,6 +8,7 @@ Grafanaの静的ダッシュボードJSONは `data/` 配下にあり、個人の
 | `data/energy/daily-electricity.csv` | `kind,date,usage,unit,status` | 日別電力 |
 | `data/energy/monthly-usage.csv` | `kind,display_month,period_start,period_end,usage,unit,status` | 月別電気・ガス |
 | `data/energy/billing.csv` | `kind,billing_month,period_start,period_end,usage,unit,charge_yen` | 請求明細 |
+| `data/water/water-usage.csv` | `display_month,meter_reading_date,period_start,period_end,water_m3,sewer_m3,previous_water_m3,prior_year_water_m3,water_fee_yen,sewer_fee_yen,total_fee_yen` | 水道・下水道 |
 
 入力はCSVではなく、3シートのExcel (`.xlsx`) とする。日付をExcelの日付セルとして保持でき、
 月別・日別・請求明細を一つの取得物として検証できるためである。以下の依頼文をWindows版
@@ -59,3 +60,8 @@ docker compose restart grafana
 
 この操作はCSV、Grafana用の静的CSV Content、`energy-import.prom`を更新する。Excelは取込後にPiへ
 残さない。`Energy Usage`ダッシュボードを再読み込みして表示を確認する。
+
+水道CSVを同時に更新する場合は、`--water-csv /path/to/さいたま市水道_利用実績.csv` を追加する。
+入力CSVはUTF-8で、列名 `表示月`、`検針日`、`使用期間`、`水道使用量_㎥`、`下水道使用量_㎥`、
+`前回水道使用量_㎥`、`前年同期水道使用量_㎥`、`水道料金_円`、`下水道使用料_円`、`料金合計_円` を
+必要とする。支払方法は保存しない。
