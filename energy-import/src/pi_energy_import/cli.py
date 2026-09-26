@@ -88,91 +88,79 @@ def water_rows(source: Path) -> list[dict[str, str]]:
     return result
 
 
-def testdata_target(ref_id: str, content: str) -> dict:
-    return {"refId": ref_id, "scenarioId": "csv_content", "csvContent": content}
-
-
-def panel(panel_id: int, title: str, csv_content: str, y: int, unit: str, fill_opacity: int = 0, bar_width_factor: float = 0.6) -> dict:
-    return {"id": panel_id, "type": "timeseries", "title": title, "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": y}, "fieldConfig": {"defaults": {"unit": unit, "custom": {"drawStyle": "bars", "barWidthFactor": bar_width_factor, "lineWidth": 1, "fillOpacity": fill_opacity, "showPoints": "never"}}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]}}], "targets": [testdata_target("A", csv_content)]}
-
-
-def monthly_category_csv(rows: list[dict[str, str]], date_field: str) -> str:
-    names = {"表示実績": "actual", "集計途中": "in_progress", "予測": "forecast"}; points: dict[str, dict[str, str]] = {}
-    for row in rows:
-        point = points.setdefault(row[date_field][:7], {}); point[names.get(row["status"], row["status"])] = row["usage"]
-    columns = ["Period", "actual", "in_progress", "forecast"]
-    return ",".join(columns) + "\n" + "\n".join(",".join([period] + [points[period].get(column, "") for column in columns[1:]]) for period in sorted(points))
-
-
-def monthly_electricity_timeseries(rows: list[dict[str, str]]) -> str:
-    """Use one explicit timestamp per provider display month; retain every row/status."""
+def build_daily_electricity_panel(rows: list[dict[str, str]]) -> dict:
     status_names = {"表示実績": "actual", "集計途中": "in_progress", "予測": "forecast"}
     points: dict[str, dict[str, str]] = {}
     for row in rows:
-        point = points.setdefault(row["display_month"], {})
-        point[status_names[row["status"]]] = row["usage"]
-    columns = ["Time", "actual", "in_progress", "forecast"]
-    return ",".join(columns) + "\n" + "\n".join(",".join([when] + [points[when].get(column, "") for column in columns[1:]]) for when in sorted(points))
-
-
-def monthly_gas_timeseries(rows: list[dict[str, str]]) -> str:
-    """Gas has its own mapping so future gas-specific changes cannot affect electricity."""
-    status_names = {"表示実績": "actual", "集計途中": "in_progress", "予測": "forecast"}
-    points: dict[str, dict[str, str]] = {}
-    for row in rows:
-        point = points.setdefault(row["display_month"], {})
-        point[status_names[row["status"]]] = row["usage"]
-    columns = ["Time", "actual", "in_progress", "forecast"]
-    return ",".join(columns) + "\n" + "\n".join(",".join([when] + [points[when].get(column, "") for column in columns[1:]]) for when in sorted(points))
-
-
-def water_panel(panel_id: int, title: str, content: str, y: int, unit: str, names: dict[str, str], colors: dict[str, str], stacking: str = "none", show_value: str = "auto") -> dict:
-    return {"id": panel_id, "type": "barchart", "title": title, "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": y}, "fieldConfig": {"defaults": {"unit": unit}, "overrides": [{"matcher": {"id": "byName", "options": field}, "properties": [{"id": "displayName", "value": label}, {"id": "color", "value": {"mode": "fixed", "fixedColor": colors[field]}}]} for field, label in names.items()]}, "options": {"orientation": "auto", "showValue": show_value, "stacking": stacking, "xField": "Period", "legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "targets": [testdata_target("A", content)]}
-
-
-def monthly_panel(panel_id: int, title: str, content: str, y: int, unit: str) -> dict:
-    return {"id": panel_id, "type": "barchart", "title": title, "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": y}, "fieldConfig": {"defaults": {"unit": unit}, "overrides": []}, "options": {"orientation": "auto", "showValue": "never", "stacking": "none", "xField": "Period", "legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "targets": [testdata_target("A", content)]}
-
-
-def series_csv(rows: list[dict[str, str]], time_field: str, status_field: str) -> str:
-    names = {"表示実績": "actual", "集計途中": "in_progress", "予測": "forecast"}
-    points: dict[str, dict[str, str]] = {}
-    for row in rows:
-        point = points.setdefault(row[time_field], {})
-        point[names.get(row[status_field], row[status_field])] = row["usage"]
-    columns = ["Time", "actual", "in_progress", "forecast"]
-    return ",".join(columns) + "\n" + "\n".join(
-        ",".join([when] + [points[when].get(column, "") for column in columns[1:]])
+        points.setdefault(row["date"], {})[status_names[row["status"]]] = row["usage"]
+    content = "Time,actual,in_progress,forecast\n" + "\n".join(
+        ",".join([when, points[when].get("actual", ""), points[when].get("in_progress", ""), points[when].get("forecast", "")])
         for when in sorted(points)
     )
+    return {"id": 2, "type": "timeseries", "title": "Daily electricity usage", "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": 5}, "fieldConfig": {"defaults": {"unit": "kWh", "custom": {"drawStyle": "bars", "barWidthFactor": 0.6, "lineWidth": 1, "fillOpacity": 0, "showPoints": "never"}}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]}}], "targets": [{"refId": "A", "scenarioId": "csv_content", "csvContent": content}]}
 
 
-def selected_csv(rows: list[dict[str, str]], time_field: str, fields: list[str]) -> str:
-    return "Time," + ",".join(fields) + "\n" + "\n".join(
-        ",".join([row[time_field]] + [row[field] for field in fields]) for row in rows
+def build_monthly_electricity_panel(rows: list[dict[str, str]]) -> dict:
+    """Build electricity alone: every imported provider display month remains selectable by time range."""
+    status_names = {"表示実績": "actual", "集計途中": "in_progress", "予測": "forecast"}
+    points: dict[str, dict[str, str]] = {}
+    for row in rows:
+        if row["kind"] == "電気":
+            points.setdefault(row["display_month"], {})[status_names[row["status"]]] = row["usage"]
+    content = "Time,actual,in_progress,forecast\n" + "\n".join(
+        ",".join([when, points[when].get("actual", ""), points[when].get("in_progress", ""), points[when].get("forecast", "")])
+        for when in sorted(points)
     )
+    return {"id": 3, "type": "timeseries", "title": "Monthly electricity usage", "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": 15}, "fieldConfig": {"defaults": {"unit": "kWh", "custom": {"drawStyle": "bars", "barWidthFactor": 0.5, "lineWidth": 1, "fillOpacity": 80, "showPoints": "never"}}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]}}], "targets": [{"refId": "A", "scenarioId": "csv_content", "csvContent": content}]}
+
+
+def build_monthly_gas_panel(rows: list[dict[str, str]]) -> dict:
+    """Build gas alone so a gas-specific display change cannot affect electricity."""
+    status_names = {"表示実績": "actual", "集計途中": "in_progress", "予測": "forecast"}
+    points: dict[str, dict[str, str]] = {}
+    for row in rows:
+        if row["kind"] == "ガス":
+            points.setdefault(row["display_month"], {})[status_names[row["status"]]] = row["usage"]
+    content = "Time,actual,in_progress,forecast\n" + "\n".join(
+        ",".join([when, points[when].get("actual", ""), points[when].get("in_progress", ""), points[when].get("forecast", "")])
+        for when in sorted(points)
+    )
+    return {"id": 4, "type": "timeseries", "title": "Monthly gas usage", "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": 25}, "fieldConfig": {"defaults": {"unit": "m3", "custom": {"drawStyle": "bars", "barWidthFactor": 0.5, "lineWidth": 1, "fillOpacity": 80, "showPoints": "never"}}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]}}], "targets": [{"refId": "A", "scenarioId": "csv_content", "csvContent": content}]}
+
+
+def build_electricity_charge_panel(rows: list[dict[str, str]]) -> dict:
+    content = "Time,Charge\n" + "\n".join(f"{row['billing_month']},{row['charge_yen']}" for row in rows if row["kind"] == "電気")
+    return {"id": 7, "type": "timeseries", "title": "Electricity charges", "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": 35}, "fieldConfig": {"defaults": {"unit": "prefix:￥", "custom": {"drawStyle": "bars", "barWidthFactor": 0.5, "lineWidth": 1, "fillOpacity": 80, "showPoints": "never"}}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]}}], "targets": [{"refId": "A", "scenarioId": "csv_content", "csvContent": content}]}
+
+
+def build_gas_charge_panel(rows: list[dict[str, str]]) -> dict:
+    content = "Time,Charge\n" + "\n".join(f"{row['billing_month']},{row['charge_yen']}" for row in rows if row["kind"] == "ガス")
+    return {"id": 8, "type": "timeseries", "title": "Gas charges", "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": 45}, "fieldConfig": {"defaults": {"unit": "prefix:￥", "custom": {"drawStyle": "bars", "barWidthFactor": 0.5, "lineWidth": 1, "fillOpacity": 80, "showPoints": "never"}}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]}}], "targets": [{"refId": "A", "scenarioId": "csv_content", "csvContent": content}]}
+
+
+def build_water_usage_panel(rows: list[dict[str, str]]) -> dict:
+    content = "Period,water_m3\n" + "\n".join(f"{row['billing_months']},{row['water_m3']}" for row in rows)
+    return {"id": 5, "type": "barchart", "title": "Water and sewer usage", "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": 55}, "fieldConfig": {"defaults": {"unit": "m3"}, "overrides": [{"matcher": {"id": "byName", "options": "water_m3"}, "properties": [{"id": "displayName", "value": "Total usage"}, {"id": "color", "value": {"mode": "fixed", "fixedColor": "#1F78C1"}}]}]}, "options": {"orientation": "auto", "showValue": "auto", "stacking": "none", "xField": "Period", "legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "targets": [{"refId": "A", "scenarioId": "csv_content", "csvContent": content}]}
+
+
+def build_water_charge_panel(rows: list[dict[str, str]]) -> dict:
+    content = "Period,water_fee_yen,sewer_fee_yen\n" + "\n".join(f"{row['billing_months']},{row['water_fee_yen']},{row['sewer_fee_yen']}" for row in rows)
+    return {"id": 6, "type": "barchart", "title": "Water and sewer charges", "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": 65}, "fieldConfig": {"defaults": {"unit": "prefix:￥"}, "overrides": [{"matcher": {"id": "byName", "options": "water_fee_yen"}, "properties": [{"id": "displayName", "value": "Water"}, {"id": "color", "value": {"mode": "fixed", "fixedColor": "#1F78C1"}}]}, {"matcher": {"id": "byName", "options": "sewer_fee_yen"}, "properties": [{"id": "displayName", "value": "Sewer"}, {"id": "color", "value": {"mode": "fixed", "fixedColor": "#6ED0E0"}}]}]}, "options": {"orientation": "auto", "showValue": "never", "stacking": "normal", "xField": "Period", "legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "targets": [{"refId": "A", "scenarioId": "csv_content", "csvContent": content}]}
 
 
 def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]], destination: Path) -> None:
-    daily = series_csv(rows["日別使用量"], "date", "status")
-    monthly_electric = monthly_electricity_timeseries([r for r in rows["月別使用量"] if r["kind"] == "電気"])
-    monthly_gas = monthly_gas_timeseries([r for r in rows["月別使用量"] if r["kind"] == "ガス"])
-    electricity_charge = selected_csv([r for r in rows["請求明細"] if r["kind"] == "電気"], "billing_month", ["charge_yen"]).replace("charge_yen", "Charge", 1)
-    gas_charge = selected_csv([r for r in rows["請求明細"] if r["kind"] == "ガス"], "billing_month", ["charge_yen"]).replace("charge_yen", "Charge", 1)
-    water_usage = selected_csv(water, "billing_months", ["water_m3"]).replace("Time,", "Period,", 1)
-    water_cost = selected_csv(water, "billing_months", ["water_fee_yen", "sewer_fee_yen"]).replace("Time,", "Period,", 1)
     body = {
         "annotations": {"list": []}, "editable": False,
         "description": "Private electricity and gas history imported manually from the provider portal.",
         "panels": [
             {"id": 1, "type": "text", "title": "About this dashboard", "gridPos": {"h": 5, "w": 24, "x": 0, "y": 0}, "options": {"mode": "markdown", "content": "### Electricity & gas usage\n\n- Updated manually from the provider portal; this is not live telemetry.\n- **Actual**, **in progress**, and **forecast** values must not be added together.\n- Electricity uses each record's period end date. Gas uses the provider display month on the first day of that month."}},
-            panel(2, "Daily electricity usage", daily, 5, "kWh"),
-            panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh", 80, 0.5),
-            panel(4, "Monthly gas usage", monthly_gas, 25, "m3", 80, 0.5),
-            panel(7, "Electricity charges", electricity_charge, 35, "prefix:￥", 80, 0.5),
-            panel(8, "Gas charges", gas_charge, 45, "prefix:￥", 80, 0.5),
-            water_panel(5, "Water and sewer usage", water_usage, 55, "m3", {"water_m3": "Total usage"}, {"water_m3": "#1F78C1"}),
-            water_panel(6, "Water and sewer charges", water_cost, 65, "prefix:￥", {"water_fee_yen": "Water", "sewer_fee_yen": "Sewer"}, {"water_fee_yen": "#1F78C1", "sewer_fee_yen": "#6ED0E0"}, "normal", "never"),
+            build_daily_electricity_panel(rows["日別使用量"]),
+            build_monthly_electricity_panel(rows["月別使用量"]),
+            build_monthly_gas_panel(rows["月別使用量"]),
+            build_electricity_charge_panel(rows["請求明細"]),
+            build_gas_charge_panel(rows["請求明細"]),
+            build_water_usage_panel(water),
+            build_water_charge_panel(water),
         ],
         "schemaVersion": 42, "tags": ["energy", "electricity", "gas"],
         "time": {"from": "now-1y", "to": "now"}, "timezone": "browser",
