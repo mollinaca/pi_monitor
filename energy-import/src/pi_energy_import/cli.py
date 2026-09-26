@@ -136,6 +136,8 @@ def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]]
     daily = series_csv(rows["日別使用量"], "date", "status")
     monthly_electric = series_csv([r for r in rows["月別使用量"] if r["kind"] == "電気"], "period_end", "status")
     monthly_gas = series_csv([r for r in rows["月別使用量"] if r["kind"] == "ガス"], "display_month", "status")
+    electricity_charge = selected_csv([r for r in rows["請求明細"] if r["kind"] == "電気"], "billing_month", ["charge_yen"]).replace("charge_yen", "Charge", 1)
+    gas_charge = selected_csv([r for r in rows["請求明細"] if r["kind"] == "ガス"], "billing_month", ["charge_yen"]).replace("charge_yen", "Charge", 1)
     water_usage = selected_csv(water, "billing_months", ["water_m3"]).replace("Time,", "Period,", 1)
     water_cost = selected_csv(water, "billing_months", ["water_fee_yen", "sewer_fee_yen"]).replace("Time,", "Period,", 1)
     body = {
@@ -146,8 +148,10 @@ def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]]
             panel(2, "Daily electricity usage", daily, 5, "kWh"),
             panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh", 80),
             panel(4, "Monthly gas usage", monthly_gas, 25, "m3", 80, 0.15),
-            water_panel(5, "Water and sewer usage", water_usage, 35, "m3", {"water_m3": "Total usage"}, {"water_m3": "#1F78C1"}),
-            water_panel(6, "Water and sewer charges", water_cost, 45, "prefix:￥", {"water_fee_yen": "Water", "sewer_fee_yen": "Sewer"}, {"water_fee_yen": "#1F78C1", "sewer_fee_yen": "#6ED0E0"}, "normal", "never"),
+            panel(7, "Electricity charges", electricity_charge, 35, "prefix:￥", 80, 0.5),
+            panel(8, "Gas charges", gas_charge, 45, "prefix:￥", 80, 0.5),
+            water_panel(5, "Water and sewer usage", water_usage, 55, "m3", {"water_m3": "Total usage"}, {"water_m3": "#1F78C1"}),
+            water_panel(6, "Water and sewer charges", water_cost, 65, "prefix:￥", {"water_fee_yen": "Water", "sewer_fee_yen": "Sewer"}, {"water_fee_yen": "#1F78C1", "sewer_fee_yen": "#6ED0E0"}, "normal", "never"),
         ],
         "schemaVersion": 42, "tags": ["energy", "electricity", "gas"],
         "time": {"from": "now-1y", "to": "now"}, "timezone": "browser",
