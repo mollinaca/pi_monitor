@@ -89,11 +89,21 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisSoftMax": 1, "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "percentunit" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 31 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
       "id": 5,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_wifi_gateway_packet_loss_ratio{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}} gateway", "refId": "A" }, { "expr": "home_wifi_internet_packet_loss_ratio{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}} internet", "refId": "B" } ],
-      "title": "Ping packet loss",
+      "targets": [ { "expr": "home_wifi_gateway_packet_loss_ratio{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
+      "title": "Gateway ping packet loss",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisSoftMax": 1, "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "percentunit" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 31 },
+      "id": 16,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "home_wifi_internet_packet_loss_ratio{target=~\"$target\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ],
+      "title": "Internet ping packet loss",
       "type": "timeseries"
     },
     {
