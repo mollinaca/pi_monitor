@@ -1,6 +1,35 @@
-# Home Network Monitor
+# pi_monitor
 
-Raspberry Pi (`192.168.100.201`) から、自宅LAN、Wi-Fi、インターネットの状態を監視するプロジェクトです。Raspberry Pi上では、外部ストレージ上の `/mnt/data/pi_monitor` に配置することを前提とします。
+個人的な自宅環境のための監視・可視化プロジェクトです。Raspberry Pi (`192.168.100.201`) から、自宅LAN、Wi-Fi、インターネット接続、Pi本体、電気・ガス・水道の利用履歴を確認します。一般向けの製品や汎用テンプレートではなく、ネットワーク構成・認証情報・運用手順はこの環境を前提としています。
+
+Pi上では外部ストレージの `/mnt/data/pi_monitor` に配置します。
+
+## 実装技術
+
+- Docker Compose: Gatus、Prometheus、node_exporter、Grafanaを運用
+- Python 3.11 / `uv`: Wi-Fi、ルーター、SSD SMART、回線速度のホスト側プローブと、利用履歴のCSV変換
+- systemd timer: 負荷のある測定やハードウェア取得を定期実行
+- Prometheus / Grafana: 監視メトリクスの収集・可視化
+- Grafana TestData CSV Content: 電気・ガス・水道の手入力履歴を、DBや追加プラグインなしで可視化
+
+## ディレクトリ構造
+
+```text
+pi_monitor/
+├── compose.yaml                  # コンテナ構成
+├── services/                     # Gatus、Prometheus、Grafanaの設定とダッシュボード
+├── *-probe/                      # Piホストで動くPythonプローブ（systemd管理）
+├── energy-import/                # 電気・ガス・水道のCSV／Grafanaデータ生成
+├── scripts/                      # 初期設定・systemd導入補助
+└── data/                         # 実行時データ。外部ストレージ上で保持しGit管理外
+```
+
+## ポイント
+
+- 監視コンテナと、NetworkManagerやSMARTを操作するホスト側プローブを分離しています。
+- 秘密情報と個人利用データはGitに入れません。`data/`、Grafana DB、プロバイダーから取得した元ファイルは実行環境だけに置きます。
+- Piへの反映は `git pull --ff-only` を基本とし、永続データは `/mnt/data/pi_monitor/data/` に集約します。
+- 利用履歴はライブテレメトリではなく手動更新です。インポート成否など最小限の状態だけをnode_exporter textfileで公開します。
 
 ## 構成方針
 
