@@ -98,13 +98,13 @@ def series_csv(rows: list[dict[str, str]], time_field: str, status_field: str) -
 
 def dashboard(rows: dict[str, list[dict[str, str]]], destination: Path) -> None:
     daily = series_csv(rows["日別使用量"], "date", "status")
-    monthly_electric = series_csv([r for r in rows["月別使用量"] if r["kind"] == "電気"], "period_end", "status")
-    monthly_gas = series_csv([r for r in rows["月別使用量"] if r["kind"] == "ガス"], "period_end", "status")
+    monthly_electric = series_csv([r for r in rows["月別使用量"] if r["kind"] == "電気"], "display_month", "status")
+    monthly_gas = series_csv([r for r in rows["月別使用量"] if r["kind"] == "ガス"], "display_month", "status")
     body = {
         "annotations": {"list": []}, "editable": False,
         "description": "Private electricity and gas history imported manually from the provider portal.",
         "panels": [
-            {"id": 1, "type": "text", "title": "About this dashboard", "gridPos": {"h": 5, "w": 24, "x": 0, "y": 0}, "options": {"mode": "markdown", "content": "### Electricity & gas usage\n\n- Updated manually from the provider portal; this is not live telemetry.\n- **Actual**, **in progress**, and **forecast** values must not be added together.\n- Display month is not necessarily a calendar month; graphs use each record's period end date."}},
+            {"id": 1, "type": "text", "title": "About this dashboard", "gridPos": {"h": 5, "w": 24, "x": 0, "y": 0}, "options": {"mode": "markdown", "content": "### Electricity & gas usage\n\n- Updated manually from the provider portal; this is not live telemetry.\n- **Actual**, **in progress**, and **forecast** values must not be added together.\n- Monthly charts place each provider display month on the first day of that month. Use the CSV period start/end columns when comparing actual billing periods."}},
             panel(2, "Daily electricity usage", daily, 5, "kWh"),
             panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh", 80),
             panel(4, "Monthly gas usage", monthly_gas, 25, "m3", 80, 0.15),
