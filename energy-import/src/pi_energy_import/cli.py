@@ -78,6 +78,7 @@ def panel(panel_id: int, title: str, csv_content: str, y: int, unit: str) -> dic
         "gridPos": {"h": 10, "w": 24, "x": 0, "y": y},
         "fieldConfig": {"defaults": {"unit": unit, "custom": {"drawStyle": "bars", "lineWidth": 1, "showPoints": "never"}}, "overrides": []},
         "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}},
+        "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]} }],
         "targets": [testdata_target("A", csv_content)],
     }
 
