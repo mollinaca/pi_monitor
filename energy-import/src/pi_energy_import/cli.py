@@ -123,12 +123,12 @@ def selected_csv(rows: list[dict[str, str]], time_field: str, fields: list[str])
     )
 
 
-def water_panel(panel_id: int, title: str, content: str, y: int, unit: str, names: dict[str, str]) -> dict:
+def water_panel(panel_id: int, title: str, content: str, y: int, unit: str, names: dict[str, str], stacking: str = "none") -> dict:
     return {"id": panel_id, "type": "barchart", "title": title,
         "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"},
         "gridPos": {"h": 10, "w": 24, "x": 0, "y": y},
         "fieldConfig": {"defaults": {"unit": unit}, "overrides": [{"matcher": {"id": "byName", "options": field}, "properties": [{"id": "displayName", "value": label}]} for field, label in names.items()]},
-        "options": {"orientation": "auto", "showValue": "auto", "stacking": "none", "xField": "Period", "legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}},
+        "options": {"orientation": "auto", "showValue": "auto", "stacking": stacking, "xField": "Period", "legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}},
         "targets": [testdata_target("A", content)]}
 
 
@@ -136,8 +136,8 @@ def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]]
     daily = series_csv(rows["日別使用量"], "date", "status")
     monthly_electric = series_csv([r for r in rows["月別使用量"] if r["kind"] == "電気"], "period_end", "status")
     monthly_gas = series_csv([r for r in rows["月別使用量"] if r["kind"] == "ガス"], "display_month", "status")
-    water_usage = selected_csv(water, "billing_months", ["water_m3", "sewer_m3"]).replace("Time,", "Period,", 1)
-    water_cost = selected_csv(water, "billing_months", ["water_fee_yen", "sewer_fee_yen", "total_fee_yen"]).replace("Time,", "Period,", 1)
+    water_usage = selected_csv(water, "billing_months", ["water_m3"]).replace("Time,", "Period,", 1)
+    water_cost = selected_csv(water, "billing_months", ["water_fee_yen", "sewer_fee_yen"]).replace("Time,", "Period,", 1)
     body = {
         "annotations": {"list": []}, "editable": False,
         "description": "Private electricity and gas history imported manually from the provider portal.",
@@ -146,8 +146,8 @@ def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]]
             panel(2, "Daily electricity usage", daily, 5, "kWh"),
             panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh", 80),
             panel(4, "Monthly gas usage", monthly_gas, 25, "m3", 80, 0.15),
-            water_panel(5, "Water and sewer usage", water_usage, 35, "m3", {"water_m3": "Water", "sewer_m3": "Sewer"}),
-            water_panel(6, "Water and sewer charges", water_cost, 45, "prefix:￥", {"water_fee_yen": "Water", "sewer_fee_yen": "Sewer", "total_fee_yen": "Total"}),
+            water_panel(5, "Water and sewer usage", water_usage, 35, "m3", {"water_m3": "Total usage"}),
+            water_panel(6, "Water and sewer charges", water_cost, 45, "prefix:￥", {"water_fee_yen": "Water", "sewer_fee_yen": "Sewer"}, "normal"),
         ],
         "schemaVersion": 42, "tags": ["energy", "electricity", "gas"],
         "time": {"from": "now-1y", "to": "now"}, "timezone": "browser",
