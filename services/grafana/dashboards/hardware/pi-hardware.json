@@ -63,7 +63,7 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 },
       "id": 4,
-      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "node_load1{job=\"raspberry-pi\"}", "legendFormat": "load 1m", "refId": "A" }, { "expr": "node_load5{job=\"raspberry-pi\"}", "legendFormat": "load 5m", "refId": "B" }, { "expr": "node_load15{job=\"raspberry-pi\"}", "legendFormat": "load 15m", "refId": "C" } ],
       "title": "System load",
       "type": "timeseries"
