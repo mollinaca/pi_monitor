@@ -123,12 +123,12 @@ def selected_csv(rows: list[dict[str, str]], time_field: str, fields: list[str])
     )
 
 
-def water_panel(panel_id: int, title: str, content: str, y: int, unit: str, names: dict[str, str], stacking: str = "none") -> dict:
+def water_panel(panel_id: int, title: str, content: str, y: int, unit: str, names: dict[str, str], colors: dict[str, str], stacking: str = "none", show_value: str = "auto") -> dict:
     return {"id": panel_id, "type": "barchart", "title": title,
         "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"},
         "gridPos": {"h": 10, "w": 24, "x": 0, "y": y},
-        "fieldConfig": {"defaults": {"unit": unit}, "overrides": [{"matcher": {"id": "byName", "options": field}, "properties": [{"id": "displayName", "value": label}]} for field, label in names.items()]},
-        "options": {"orientation": "auto", "showValue": "auto", "stacking": stacking, "xField": "Period", "legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}},
+        "fieldConfig": {"defaults": {"unit": unit}, "overrides": [{"matcher": {"id": "byName", "options": field}, "properties": [{"id": "displayName", "value": label}, {"id": "color", "value": {"mode": "fixed", "fixedColor": colors[field]}}]} for field, label in names.items()]},
+        "options": {"orientation": "auto", "showValue": show_value, "stacking": stacking, "xField": "Period", "legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}},
         "targets": [testdata_target("A", content)]}
 
 
@@ -146,8 +146,8 @@ def dashboard(rows: dict[str, list[dict[str, str]]], water: list[dict[str, str]]
             panel(2, "Daily electricity usage", daily, 5, "kWh"),
             panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh", 80),
             panel(4, "Monthly gas usage", monthly_gas, 25, "m3", 80, 0.15),
-            water_panel(5, "Water and sewer usage", water_usage, 35, "m3", {"water_m3": "Total usage"}),
-            water_panel(6, "Water and sewer charges", water_cost, 45, "prefix:￥", {"water_fee_yen": "Water", "sewer_fee_yen": "Sewer"}, "normal"),
+            water_panel(5, "Water and sewer usage", water_usage, 35, "m3", {"water_m3": "Total usage"}, {"water_m3": "#1F78C1"}),
+            water_panel(6, "Water and sewer charges", water_cost, 45, "prefix:￥", {"water_fee_yen": "Water", "sewer_fee_yen": "Sewer"}, {"water_fee_yen": "#1F78C1", "sewer_fee_yen": "#6ED0E0"}, "normal", "never"),
         ],
         "schemaVersion": 42, "tags": ["energy", "electricity", "gas"],
         "time": {"from": "now-1y", "to": "now"}, "timezone": "browser",
