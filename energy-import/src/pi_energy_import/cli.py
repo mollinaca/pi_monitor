@@ -71,12 +71,12 @@ def testdata_target(ref_id: str, content: str) -> dict:
     return {"refId": ref_id, "scenarioId": "csv_content", "csvContent": content}
 
 
-def panel(panel_id: int, title: str, csv_content: str, y: int, unit: str, fill_opacity: int = 0) -> dict:
+def panel(panel_id: int, title: str, csv_content: str, y: int, unit: str, fill_opacity: int = 0, bar_width_factor: float = 0.6) -> dict:
     return {
         "id": panel_id, "type": "timeseries", "title": title,
         "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"},
         "gridPos": {"h": 10, "w": 24, "x": 0, "y": y},
-        "fieldConfig": {"defaults": {"unit": unit, "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": fill_opacity, "showPoints": "never"}}, "overrides": []},
+        "fieldConfig": {"defaults": {"unit": unit, "custom": {"drawStyle": "bars", "barWidthFactor": bar_width_factor, "lineWidth": 1, "fillOpacity": fill_opacity, "showPoints": "never"}}, "overrides": []},
         "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}},
         "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]} }],
         "targets": [testdata_target("A", csv_content)],
@@ -107,7 +107,7 @@ def dashboard(rows: dict[str, list[dict[str, str]]], destination: Path) -> None:
             {"id": 1, "type": "text", "title": "About this dashboard", "gridPos": {"h": 5, "w": 24, "x": 0, "y": 0}, "options": {"mode": "markdown", "content": "### Electricity & gas usage\n\n- Updated manually from the provider portal; this is not live telemetry.\n- **Actual**, **in progress**, and **forecast** values must not be added together.\n- Display month is not necessarily a calendar month; graphs use each record's period end date."}},
             panel(2, "Daily electricity usage", daily, 5, "kWh"),
             panel(3, "Monthly electricity usage", monthly_electric, 15, "kWh", 80),
-            panel(4, "Monthly gas usage", monthly_gas, 25, "m3", 80),
+            panel(4, "Monthly gas usage", monthly_gas, 25, "m3", 80, 0.15),
         ],
         "schemaVersion": 42, "tags": ["energy", "electricity", "gas"],
         "time": {"from": "now-1y", "to": "now"}, "timezone": "browser",
