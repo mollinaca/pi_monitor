@@ -106,14 +106,12 @@ def build_monthly_electricity_panel(rows: list[dict[str, str]]) -> dict:
     points: dict[str, dict[str, str]] = {}
     for row in rows:
         if row["kind"] == "電気":
-            display_date = date.fromisoformat(row["display_month"])
-            month_midpoint = display_date.replace(day=15).isoformat()
-            points.setdefault(month_midpoint, {})[status_names[row["status"]]] = row["usage"]
+            points.setdefault(row["display_month"], {})[status_names[row["status"]]] = row["usage"]
     content = "Time,actual,in_progress,forecast\n" + "\n".join(
         ",".join([when, points[when].get("actual", ""), points[when].get("in_progress", ""), points[when].get("forecast", "")])
         for when in sorted(points)
     )
-    return {"id": 3, "type": "timeseries", "title": "Monthly electricity usage", "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": 15}, "fieldConfig": {"defaults": {"unit": "kWh", "custom": {"drawStyle": "bars", "barWidthFactor": 0.25, "lineWidth": 1, "fillOpacity": 80, "showPoints": "never"}}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]}}], "targets": [{"refId": "A", "scenarioId": "csv_content", "csvContent": content}]}
+    return {"id": 3, "type": "timeseries", "title": "Monthly electricity usage", "datasource": {"type": "grafana-testdata-datasource", "uid": "energy-static"}, "gridPos": {"h": 10, "w": 24, "x": 0, "y": 15}, "fieldConfig": {"defaults": {"unit": "kWh", "custom": {"drawStyle": "bars", "barWidthFactor": 0.2, "lineWidth": 1, "fillOpacity": 80, "showPoints": "never"}}, "overrides": []}, "options": {"legend": {"displayMode": "table", "placement": "bottom", "showLegend": True}, "tooltip": {"mode": "multi"}}, "transformations": [{"id": "convertFieldType", "options": {"fields": {}, "conversions": [{"targetField": "Time", "destinationType": "time", "dateFormat": "YYYY-MM-DD"}]}}], "targets": [{"refId": "A", "scenarioId": "csv_content", "csvContent": content}]}
 
 
 def build_monthly_gas_panel(rows: list[dict[str, str]]) -> dict:
