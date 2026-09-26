@@ -1,5 +1,6 @@
 # Runtime data
 /data/
+/services/grafana/dashboards/energy/
 /logs/
 /wifi-probe/.venv/
 /ssd-smart-probe/.venv/

@@ -12,6 +12,25 @@ Raspberry Pi (`192.168.100.201`) から、自宅LAN、Wi-Fi、インターネッ
 
 Gatus、Wi-Fi probe、node_exporter、Prometheus、Grafanaを実装済みです。Prometheusはnode_exporterとGatusを収集します。
 
+## 電気・ガス使用履歴
+
+電気・ガスの履歴は私用データのためGitへ入れません。プロバイダー画面から取得した
+ExcelをPiへコピーし、次を実行します。正規化CSVは`data/energy/`へ保存され、Grafanaの
+`Energy Usage`ダッシュボード用の静的CSV Contentも同時に生成されます。Grafana標準の
+TestDataデータソースを使うため、追加プラグインやDBは不要です。
+
+```bash
+cd /mnt/data/pi_monitor
+uv run --project energy-import pi-energy-import /path/to/電気ガス使用履歴.xlsx \
+  --data-directory data/energy \
+  --dashboard services/grafana/dashboards/energy/energy-usage.json \
+  --metrics data/node-exporter/textfile/energy-import.prom
+```
+
+このコマンドは、日別電力・月別電力／ガス・請求明細のCSVを生成します。Grafanaへ埋め込む
+表示データも再生成するため、ダッシュボードJSONはGit管理外です。textfileに出すのは取込の
+成否、最終取込時刻、行数のみであり、履歴値自体はPrometheusへ保存しません。
+
 ## ディレクトリ
 
 ```text

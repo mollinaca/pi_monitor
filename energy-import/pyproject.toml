@@ -1,0 +1,16 @@
+[project]
+name = "pi-energy-import"
+version = "0.1.0"
+description = "Import private electricity and gas history into static Grafana data."
+requires-python = ">=3.11"
+dependencies = ["openpyxl>=3.1,<4", "prometheus-client>=0.20,<1"]
+
+[project.scripts]
+pi-energy-import = "pi_energy_import.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pi_energy_import"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
