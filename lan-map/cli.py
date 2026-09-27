@@ -37,6 +37,7 @@ class Settings:
     ap_snapshot_directory: Path
     device_names_file: Path
     pi_mac_file: Path
+    pi_wifi_mac_file: Path
     database: Path
     metrics: Path
     access_points: tuple[AccessPoint, ...]
@@ -50,7 +51,7 @@ def load_settings(path: Path) -> Settings:
     ap_data = data.get("access_points")
     if not isinstance(config, dict) or not isinstance(ap_data, list) or not ap_data:
         raise ValueError("[map] and [[access_points]] are required")
-    keys = ("router_snapshot", "ap_snapshot_directory", "device_names_file", "pi_mac_file", "database", "metrics")
+    keys = ("router_snapshot", "ap_snapshot_directory", "device_names_file", "pi_mac_file", "pi_wifi_mac_file", "database", "metrics")
     if any(not isinstance(config.get(key), str) or not config[key] for key in keys):
         raise ValueError("map paths must be non-empty strings")
     retention = config.get("retention_days", 730)
@@ -165,6 +166,7 @@ def build_topology(
     aps: dict[str, dict[str, Any] | None],
     names: dict[str, str],
     pi_mac: str,
+    pi_wifi_mac: str,
 ) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
     nodes: dict[str, dict[str, str]] = {}
     edges: dict[str, dict[str, str]] = {}
@@ -210,15 +212,15 @@ def build_topology(
 
     for mac, (ap, record, _) in ap_clients.items():
         hostname = record.get("hostname") if isinstance(record.get("hostname"), str) else ""
-        title = names.get(mac) or hostname or ("Raspberry Pi" if mac == pi_mac else mac)
+        title = "Raspberry Pi (Wi-Fi)" if mac == pi_wifi_mac else names.get(mac) or hostname or ("Raspberry Pi" if mac == pi_mac else mac)
         band = band_for_channel(record.get("channel"))
         ip = valid_ip(record.get("ip")) or arp.get(mac, "")
         mac_id = "mac" + mac.replace(":", "")
-        node(mac_id, title, band, "wifi", mac=mac, ip=ip, band=band, router_port=str(switch.get(mac, "")), status="observed")
+        node(mac_id, title, band, "wifi", mac=mac, ip=ip, band=band, router_port="" if mac == pi_wifi_mac else str(switch.get(mac, "")), status="observed")
         edge(f"ap{ap.identifier}", mac_id, "ap_association", band=band)
 
     for mac, port in switch.items():
-        if mac in ap_clients or mac in ap_management_macs:
+        if mac in ap_clients or mac in ap_management_macs or mac == pi_wifi_mac:
             continue
         port_id = f"port{port}"
         if port_id not in nodes:
@@ -325,6 +327,14 @@ def write_metrics(path: Path, created_at: int, sources: dict[str, tuple[dict[str
     temporary.replace(path)
 
 
+def read_mac(path: Path) -> str:
+    try:
+        mac = path.read_text(encoding="utf-8").strip().lower()
+    except OSError:
+        return ""
+    return mac if MAC.fullmatch(mac) else ""
+
+
 def run(settings: Settings, now: float | None = None) -> tuple[int, int]:
     now = time.time() if now is None else now
     cycle_at = int(now // CYCLE_SECONDS * CYCLE_SECONDS)
@@ -332,18 +342,15 @@ def run(settings: Settings, now: float | None = None) -> tuple[int, int]:
     for ap in settings.access_points:
         sources[ap.identifier] = load_current(settings.ap_snapshot_directory / f"{ap.identifier}.json", cycle_at, ap.identifier)
     names = load_device_names(settings.device_names_file)
-    try:
-        pi_mac = settings.pi_mac_file.read_text(encoding="utf-8").strip().lower()
-    except OSError:
-        pi_mac = ""
-    if MAC.fullmatch(pi_mac) is None:
-        pi_mac = ""
+    pi_mac = read_mac(settings.pi_mac_file)
+    pi_wifi_mac = read_mac(settings.pi_wifi_mac_file)
     nodes, edges = build_topology(
         settings,
         sources["router"][0],
         {ap.identifier: sources[ap.identifier][0] for ap in settings.access_points},
         names,
         pi_mac,
+        pi_wifi_mac,
     )
     save_snapshot(settings, cycle_at, int(now), sources, nodes, edges)
     write_metrics(settings.metrics, int(now), sources, len(nodes))

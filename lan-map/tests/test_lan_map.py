@@ -15,6 +15,7 @@ def settings(tmp_path: Path) -> Settings:
         ap_snapshot_directory=tmp_path / "ap",
         device_names_file=tmp_path / "device-names.toml",
         pi_mac_file=tmp_path / "eth0-address",
+        pi_wifi_mac_file=tmp_path / "wlan0-address",
         database=tmp_path / "private" / "history.db",
         metrics=tmp_path / "metrics" / "lan-map.prom",
         access_points=(AP1, AP2),
@@ -53,14 +54,37 @@ def test_router_parsers_and_topology_do_not_misclassify_ap_clients() -> None:
     assert parse_switch_ports(switch)["00:11:22:33:44:80"] == 8
     assert parse_switch_ports("port 7:0\n--            port 8:1\n     00:11:22:33:44:80\n")["00:11:22:33:44:80"] == 8
     assert parse_arp("LAN1 192.0.2.80 00:11:22:33:44:80 20\n") == {"00:11:22:33:44:80": "192.0.2.80"}
-    config = Settings(Path("r"), Path("a"), Path("n"), Path("p"), Path("d"), Path("m"), (AP1, AP2))
+    config = Settings(Path("r"), Path("a"), Path("n"), Path("p"), Path("w"), Path("d"), Path("m"), (AP1, AP2))
     router = {"responses": {"show status switching-hub macaddress": switch, "show arp": "LAN1 192.0.2.10 00:11:22:33:44:10 20"}}
     aps = {"ap1": {"collected_at": 100.0, "clients": [{"mac": "00:11:22:33:44:50", "channel": "44"}]}, "ap2": None}
-    nodes, edges = build_topology(config, router, aps, {}, "00:11:22:33:44:80")
+    nodes, edges = build_topology(config, router, aps, {}, "00:11:22:33:44:80", "")
     assert next(node for node in nodes if node["id"] == "mac001122334480")["title"] == "Raspberry Pi"
     assert next(node for node in nodes if node["id"] == "mac001122334450")["kind"] == "wifi"
     assert any(edge["source"] == "apap1" and edge["target"] == "mac001122334450" for edge in edges)
     assert not any(edge["target"] == "mac001122334410" for edge in edges)
+
+
+def test_pi_wifi_mac_is_never_a_router_port_device() -> None:
+    config = Settings(Path("r"), Path("a"), Path("n"), Path("p"), Path("w"), Path("d"), Path("m"), (AP1, AP2))
+    wifi_mac = "00:11:22:33:44:81"
+    router = {"responses": {"show status switching-hub macaddress": (
+        "port 2:1\n  00:11:22:33:44:10\n"
+        "port 5:2\n  00:11:22:33:44:11\n  00:11:22:33:44:81\n"
+        "port 8:1\n  00:11:22:33:44:80\n"
+    ), "show arp": ""}}
+    aps = {"ap1": None, "ap2": None}
+    nodes, edges = build_topology(config, router, aps, {}, "00:11:22:33:44:80", wifi_mac)
+    assert not any(node["id"] == "mac001122334481" for node in nodes)
+    assert not any(edge["target"] == "mac001122334481" for edge in edges)
+    assert any(edge["source"] == "port8" and edge["target"] == "mac001122334480" for edge in edges)
+
+    aps["ap1"] = {"collected_at": 100.0, "clients": [{"mac": wifi_mac, "channel": "44"}]}
+    nodes, edges = build_topology(config, router, aps, {}, "00:11:22:33:44:80", wifi_mac)
+    wifi_node = next(node for node in nodes if node["id"] == "mac001122334481")
+    assert wifi_node["title"] == "Raspberry Pi (Wi-Fi)"
+    assert wifi_node["router_port"] == ""
+    assert any(edge["source"] == "apap1" and edge["target"] == "mac001122334481" for edge in edges)
+    assert not any(edge["source"] == "port5" and edge["target"] == "mac001122334481" for edge in edges)
 
 
 def test_run_saves_single_cycle_and_rejects_stale_ap_snapshot(tmp_path: Path) -> None:
