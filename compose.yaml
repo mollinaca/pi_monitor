@@ -80,6 +80,7 @@ services:
       - "3001:3000"
     environment:
       GF_SERVER_ROOT_URL: http://192.168.100.201:3001
+      GF_PLUGINS_PREINSTALL: frser-sqlite-datasource@4.0.6
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_USERS_ALLOW_ORG_CREATE: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
