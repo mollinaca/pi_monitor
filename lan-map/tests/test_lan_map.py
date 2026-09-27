@@ -100,6 +100,11 @@ def test_dashboard_queries_select_historical_snapshot(tmp_path: Path) -> None:
             cursor = db.execute(target["rawQueryText"].replace("$__to", query_time))
             results[target["refId"]] = (set(column[0] for column in cursor.description), cursor.fetchall())
     assert {"id", "title", "subtitle"} <= results["nodes"][0]
+    assert "color" in results["nodes"][0]
+    colors = {row[0]: row[3] for row in results["nodes"][1]}
+    assert colors["router"] == "#B877D9"
+    assert colors["apap1"] == "#5794F2"
+    assert colors["mac001122334450"] == "#73BF69"
     assert {"id", "source", "target"} <= results["edges"][0]
     assert len(results["nodes"][1]) > 5
     assert len(results["edges"][1]) > 5

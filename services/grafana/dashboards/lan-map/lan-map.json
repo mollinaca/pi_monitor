@@ -27,7 +27,7 @@
     {
       "gridPos": { "h": 5, "w": 11, "x": 13, "y": 0 },
       "id": 3,
-      "options": { "content": "### Reading the map\n\n- Set the time range **end** to the moment to inspect. The latest snapshot at or before that moment is shown.\n- Green age under five minutes means a recent periodic snapshot; red means collection was missed.\n- A router-port line means the MAC was learned behind that port, not necessarily that a cable runs directly to the device.\n- AP client lines appear only when that AP was collected successfully in the displayed cycle. Device names and MACs are private.", "mode": "markdown" },
+      "options": { "content": "### Reading the map\n\n- Node colors: 🟣 Router, 🔵 AP, 🟢 end device, ⚪ router port.\n- Set the time range **end** to the moment to inspect. The latest snapshot at or before that moment is shown.\n- Green age under five minutes means a recent periodic snapshot; red means collection was missed.\n- A router-port line means the MAC was learned behind that port, not necessarily that a cable runs directly to the device.\n- AP client lines appear only when that AP was collected successfully in the displayed cycle. Device names and MACs are private.", "mode": "markdown" },
       "title": "How to use this dashboard",
       "type": "text"
     },
@@ -39,8 +39,8 @@
       "options": { "layoutAlgorithm": "force" },
       "targets": [
         {
-          "rawQueryText": "WITH selected AS (SELECT id FROM snapshot WHERE cycle_at <= CAST($__to AS INTEGER) / 1000 ORDER BY cycle_at DESC LIMIT 1) SELECT n.id, n.title, n.subtitle, n.kind AS detail__Type, n.mac AS detail__MAC, n.ip AS detail__IP, n.band AS detail__Band, n.router_port AS detail__Router_port, n.status AS detail__Status FROM node AS n JOIN selected ON n.snapshot_id = selected.id",
-          "queryText": "WITH selected AS (SELECT id FROM snapshot WHERE cycle_at <= CAST($__to AS INTEGER) / 1000 ORDER BY cycle_at DESC LIMIT 1) SELECT n.id, n.title, n.subtitle, n.kind AS detail__Type, n.mac AS detail__MAC, n.ip AS detail__IP, n.band AS detail__Band, n.router_port AS detail__Router_port, n.status AS detail__Status FROM node AS n JOIN selected ON n.snapshot_id = selected.id",
+          "rawQueryText": "WITH selected AS (SELECT id FROM snapshot WHERE cycle_at <= CAST($__to AS INTEGER) / 1000 ORDER BY cycle_at DESC LIMIT 1) SELECT n.id, n.title, n.subtitle, CASE WHEN n.kind = 'router' THEN '#B877D9' WHEN n.kind = 'ap' THEN '#5794F2' WHEN n.kind IN ('wifi', 'wired', 'port_learned') THEN '#73BF69' ELSE '#9CA3AF' END AS color, n.kind AS detail__Type, n.mac AS detail__MAC, n.ip AS detail__IP, n.band AS detail__Band, n.router_port AS detail__Router_port, n.status AS detail__Status FROM node AS n JOIN selected ON n.snapshot_id = selected.id",
+          "queryText": "WITH selected AS (SELECT id FROM snapshot WHERE cycle_at <= CAST($__to AS INTEGER) / 1000 ORDER BY cycle_at DESC LIMIT 1) SELECT n.id, n.title, n.subtitle, CASE WHEN n.kind = 'router' THEN '#B877D9' WHEN n.kind = 'ap' THEN '#5794F2' WHEN n.kind IN ('wifi', 'wired', 'port_learned') THEN '#73BF69' ELSE '#9CA3AF' END AS color, n.kind AS detail__Type, n.mac AS detail__MAC, n.ip AS detail__IP, n.band AS detail__Band, n.router_port AS detail__Router_port, n.status AS detail__Status FROM node AS n JOIN selected ON n.snapshot_id = selected.id",
           "queryType": "table",
           "refId": "nodes",
           "timeColumns": []
