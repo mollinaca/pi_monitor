@@ -38,7 +38,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisSoftMax": 100, "drawStyle": "line", "fillOpacity": 70, "lineWidth": 1, "pointSize": 4, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } }, "unit": "percent" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisMax": 100, "axisMin": 0, "drawStyle": "line", "fillOpacity": 70, "lineWidth": 1, "pointSize": 4, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } }, "unit": "percent" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
       "id": 11,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
