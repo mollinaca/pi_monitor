@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from prometheus_client.parser import text_string_to_metric_families
@@ -97,6 +98,7 @@ def test_write_metrics_exports_client_inventory_labels_when_enabled(tmp_path: Pa
         metrics_filename="ap-web.prom",
         targets=(Target("ap1", "192.168.100.246", False, 45),),
         device_names_file=names,
+        snapshot_directory=tmp_path / "snapshots",
     )
 
     def collect(*_args: object) -> tuple[object, object, float]:
@@ -106,6 +108,9 @@ def test_write_metrics_exports_client_inventory_labels_when_enabled(tmp_path: Pa
     output = write_metrics(settings, Credentials("user", "password"))
     contents = output.read_text(encoding="utf-8")
     assert 'home_ap_web_client_info{address="192.168.100.246",ap="ap1",band="5ghz",device_name="Living room TV",hostname="tv",mac="00:11:22:33:44:55",ssid="home"} 1.0' in contents
+    snapshot = settings.snapshot_directory / "ap1.json"
+    assert snapshot.stat().st_mode & 0o777 == 0o600
+    assert json.loads(snapshot.read_text(encoding="utf-8"))["clients"][0]["mac"] == "00:11:22:33:44:55"
 
 
 def test_write_metrics_records_failure_without_client_identifiers(tmp_path: Path, monkeypatch) -> None:

@@ -1,0 +1,14 @@
+[Unit]
+Description=Build periodic private LAN topology snapshot
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/mnt/data/pi_monitor/lan-map
+ExecStart=/usr/bin/python3 /mnt/data/pi_monitor/lan-map/cli.py --config /mnt/data/pi_monitor/lan-map/config/map.toml
+UMask=0027
+TimeoutStartSec=1min
+Nice=10
+NoNewPrivileges=true

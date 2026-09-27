@@ -90,6 +90,18 @@ scrape_configs:
         regex: home_router_.+
         action: keep
 
+  - job_name: lan-map
+    scrape_interval: 1m
+    static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          host: raspberry-pi
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: home_lan_map_.+
+        action: keep
+
   - job_name: gatus
     static_configs:
       - targets:

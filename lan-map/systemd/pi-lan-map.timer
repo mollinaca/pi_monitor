@@ -1,0 +1,11 @@
+[Unit]
+Description=Build LAN topology snapshot every five minutes after AP and Router probes
+
+[Timer]
+OnCalendar=*-*-* *:3/5:30
+Persistent=true
+AccuracySec=15s
+Unit=pi-lan-map.service
+
+[Install]
+WantedBy=timers.target

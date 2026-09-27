@@ -1,0 +1,20 @@
+[map]
+router_snapshot = "/mnt/data/pi_monitor/data/router-probe/latest.json"
+ap_snapshot_directory = "/mnt/data/pi_monitor/data/ap-web-probe"
+device_names_file = "/root/.config/pi_monitor/device-names.toml"
+pi_mac_file = "/sys/class/net/eth0/address"
+database = "/mnt/data/pi_monitor/data/lan-map/history.db"
+metrics = "/mnt/data/pi_monitor/data/node-exporter/textfile/lan-map.prom"
+retention_days = 730
+
+[[access_points]]
+id = "ap1"
+name = "AP-1F"
+address = "192.168.100.246"
+router_port = 2
+
+[[access_points]]
+id = "ap2"
+name = "AP-2F"
+address = "192.168.100.247"
+router_port = 5

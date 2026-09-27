@@ -45,6 +45,7 @@ class Settings:
     metrics_filename: str
     targets: tuple[Target, ...]
     device_names_file: Path | None = None
+    snapshot_directory: Path | None = None
 
     @property
     def metrics_path(self) -> Path:
@@ -88,12 +89,16 @@ def load_settings(path: Path) -> Settings:
     device_names = probe.get("device_names_file")
     if device_names is not None and (not isinstance(device_names, str) or not device_names):
         raise ValueError("device_names_file must be a non-empty path when configured")
+    snapshot_directory = probe.get("snapshot_directory")
+    if snapshot_directory is not None and (not isinstance(snapshot_directory, str) or not snapshot_directory):
+        raise ValueError("snapshot_directory must be a non-empty path when configured")
     return Settings(
         Path(probe["credentials_file"]),
         Path(probe["metrics_directory"]),
         filename,
         tuple(configured),
         Path(device_names) if device_names is not None else None,
+        Path(snapshot_directory) if snapshot_directory is not None else None,
     )
 
 
@@ -396,6 +401,19 @@ def collect_target(target: Target, credentials: Credentials) -> tuple[Any, Any, 
         client.close()
 
 
+def write_client_snapshot(directory: Path, target: Target, records: list[dict[str, Any]]) -> None:
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    destination = directory / f"{target.identifier}.json"
+    temporary = directory / f".{target.identifier}.json.tmp"
+    clients = [{key: record[key] for key in ("mac", "ip", "hostname", "channel") if key in record} for record in records]
+    temporary.write_text(
+        json.dumps({"ap": target.identifier, "collected_at": time.time(), "clients": clients}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    os.chmod(temporary, 0o600)
+    temporary.replace(destination)
+
+
 def write_metrics(settings: Settings, credentials: Credentials) -> Path:
     settings.metrics_directory.mkdir(parents=True, exist_ok=True)
     registry = CollectorRegistry()
@@ -429,6 +447,8 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
         attempt.labels(*values).set(time.time())
         try:
             dashboard, associations, elapsed = collect_target(target, credentials)
+            if settings.snapshot_directory is not None:
+                write_client_snapshot(settings.snapshot_directory, target, associations["clients"])
             success.labels(*values).set(1)
             duration.labels(*values).set(elapsed)
             clients.labels(*values).set(count_client_records(associations))

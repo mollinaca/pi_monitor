@@ -94,4 +94,5 @@ services:
     volumes:
       - ./services/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./services/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - /mnt/data/pi_monitor/data/lan-map:/var/lib/grafana/lan-map:ro
       - /mnt/data/pi_monitor/data/grafana:/var/lib/grafana
