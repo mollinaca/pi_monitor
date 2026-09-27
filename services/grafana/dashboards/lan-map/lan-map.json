@@ -36,7 +36,7 @@
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 34, "w": 24, "x": 0, "y": 5 },
       "id": 4,
-      "options": {},
+      "options": { "layoutAlgorithm": "force" },
       "targets": [
         {
           "rawQueryText": "WITH selected AS (SELECT id FROM snapshot WHERE cycle_at <= CAST($__to AS INTEGER) / 1000 ORDER BY cycle_at DESC LIMIT 1) SELECT n.id, n.title, n.subtitle, n.kind AS detail__Type, n.mac AS detail__MAC, n.ip AS detail__IP, n.band AS detail__Band, n.router_port AS detail__Router_port, n.status AS detail__Status FROM node AS n JOIN selected ON n.snapshot_id = selected.id",
