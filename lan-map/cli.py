@@ -20,6 +20,8 @@ from typing import Any
 MAC = re.compile(r"\b(?:[0-9a-f]{2}:){5}[0-9a-f]{2}\b", re.IGNORECASE)
 IPV4 = re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b")
 PORT = re.compile(r"^\s*(?:--\s*)?port\s+(\d+):\d+\s*$", re.IGNORECASE)
+DHCP_CLIENT_ID = re.compile(r"Client ID:\s*\(01\)\s*((?:[0-9a-fA-F]{2}\s+){5}[0-9a-fA-F]{2})", re.IGNORECASE)
+DHCP_HOST_NAME = re.compile(r"Host Name:\s*(\S+)", re.IGNORECASE)
 CYCLE_SECONDS = 300
 
 
@@ -123,6 +125,23 @@ def parse_arp(value: str) -> dict[str, str]:
     return addresses
 
 
+def parse_dhcp_names(value: str) -> dict[str, str]:
+    names: dict[str, str] = {}
+    current_mac = ""
+    for line in value.splitlines():
+        if "Leased address:" in line:
+            current_mac = ""
+        client = DHCP_CLIENT_ID.search(line)
+        if client:
+            current_mac = ":".join(client.group(1).lower().split())
+        host = DHCP_HOST_NAME.search(line)
+        if host and current_mac:
+            hostname = host.group(1).strip()
+            if hostname.lower() not in {"unknown", "none", "-"}:
+                names[current_mac] = hostname
+    return names
+
+
 def load_current(path: Path, cycle_at: int, source: str) -> tuple[dict[str, Any] | None, int | None]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -181,10 +200,12 @@ def build_topology(
     node("router", "Router", "RTX1210", "router", status="observed" if router else "unavailable")
     switch: dict[str, int] = {}
     arp: dict[str, str] = {}
+    dhcp_names: dict[str, str] = {}
     if router:
         responses = router["responses"]
         switch = parse_switch_ports(str(responses.get("show status switching-hub macaddress", "")))
         arp = parse_arp(str(responses.get("show arp", "")))
+        dhcp_names = parse_dhcp_names(str(responses.get("show status dhcp", "")))
 
     ap_management_macs = {mac for ap in settings.access_points for mac, ip in arp.items() if ip == ap.address}
     ap_clients: dict[str, tuple[AccessPoint, dict[str, Any], float]] = {}
@@ -212,7 +233,10 @@ def build_topology(
 
     for mac, (ap, record, _) in ap_clients.items():
         hostname = record.get("hostname") if isinstance(record.get("hostname"), str) else ""
-        title = "Raspberry Pi (Wi-Fi)" if mac == pi_wifi_mac else names.get(mac) or hostname or ("Raspberry Pi" if mac == pi_mac else mac)
+        hostname = hostname.strip()
+        if hostname.lower() == "unknown":
+            hostname = ""
+        title = "Raspberry Pi (Wi-Fi)" if mac == pi_wifi_mac else names.get(mac) or hostname or dhcp_names.get(mac) or ("Raspberry Pi" if mac == pi_mac else mac)
         band = band_for_channel(record.get("channel"))
         ip = valid_ip(record.get("ip")) or arp.get(mac, "")
         mac_id = "mac" + mac.replace(":", "")
@@ -226,7 +250,7 @@ def build_topology(
         if port_id not in nodes:
             node(port_id, f"Port {port}", "Router LAN1", "port", status="observed")
             edge("router", port_id, "switch_table")
-        title = names.get(mac) or ("Raspberry Pi" if mac == pi_mac else mac)
+        title = names.get(mac) or ("Raspberry Pi" if mac == pi_mac else dhcp_names.get(mac) or mac)
         mac_id = "mac" + mac.replace(":", "")
         kind = "wired" if mac == pi_mac else "port_learned"
         subtitle = "Wired eth0" if kind == "wired" else "Seen behind Router port"

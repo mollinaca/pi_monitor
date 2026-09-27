@@ -2,7 +2,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from cli import AccessPoint, Settings, build_topology, parse_arp, parse_switch_ports, run
+from cli import AccessPoint, Settings, build_topology, parse_arp, parse_dhcp_names, parse_switch_ports, run
 
 
 AP1 = AccessPoint("ap1", "AP-1F", "192.0.2.10", 2)
@@ -85,6 +85,36 @@ def test_pi_wifi_mac_is_never_a_router_port_device() -> None:
     assert wifi_node["router_port"] == ""
     assert any(edge["source"] == "apap1" and edge["target"] == "mac001122334481" for edge in edges)
     assert not any(edge["source"] == "port5" and edge["target"] == "mac001122334481" for edge in edges)
+
+
+def test_unknown_ap_names_use_matching_dhcp_name_then_mac() -> None:
+    config = Settings(Path("r"), Path("a"), Path("n"), Path("p"), Path("w"), Path("d"), Path("m"), (AP1, AP2))
+    dhcp = (
+        "Leased address: 192.0.2.14\n"
+        "(type) Client ID: (01) 00 11 22 33 44 14\n"
+        "Host Name: Pixel-8a\n"
+        "Leased address: 192.0.2.18\n"
+        "(type) Client ID: (01) 00 11 22 33 44 18\n"
+        "Host Name: unknown\n"
+        "Leased address: 192.0.2.20\n"
+        "(type) Client ID: (01) 00 11 22 33 44 20\n"
+        "Host Name: Wrong-IP-Name\n"
+    )
+    assert parse_dhcp_names(dhcp) == {
+        "00:11:22:33:44:14": "Pixel-8a",
+        "00:11:22:33:44:20": "Wrong-IP-Name",
+    }
+    router = {"responses": {"show status dhcp": dhcp, "show arp": "", "show status switching-hub macaddress": ""}}
+    aps = {"ap1": {"collected_at": 100.0, "clients": [
+        {"mac": "00:11:22:33:44:14", "ip": "192.0.2.20", "hostname": "unknown"},
+        {"mac": "00:11:22:33:44:18", "ip": "192.0.2.18", "hostname": "unknown"},
+    ]}, "ap2": None}
+    nodes, _ = build_topology(config, router, aps, {}, "", "")
+    titles = {node["mac"]: node["title"] for node in nodes if node.get("mac")}
+    assert titles["00:11:22:33:44:14"] == "Pixel-8a"
+    assert titles["00:11:22:33:44:18"] == "00:11:22:33:44:18"
+    nodes, _ = build_topology(config, router, aps, {"00:11:22:33:44:14": "My phone"}, "", "")
+    assert next(node for node in nodes if node.get("mac") == "00:11:22:33:44:14")["title"] == "My phone"
 
 
 def test_run_saves_single_cycle_and_rejects_stale_ap_snapshot(tmp_path: Path) -> None:
