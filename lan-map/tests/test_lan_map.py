@@ -51,6 +51,7 @@ def write_inputs(config: Settings, cycle_at: int) -> None:
 def test_router_parsers_and_topology_do_not_misclassify_ap_clients() -> None:
     switch = "port 2:2\n  00:11:22:33:44:10\n  00:11:22:33:44:50\nport 8:1\n-- 00:11:22:33:44:80\n"
     assert parse_switch_ports(switch)["00:11:22:33:44:80"] == 8
+    assert parse_switch_ports("port 7:0\n--            port 8:1\n     00:11:22:33:44:80\n")["00:11:22:33:44:80"] == 8
     assert parse_arp("LAN1 192.0.2.80 00:11:22:33:44:80 20\n") == {"00:11:22:33:44:80": "192.0.2.80"}
     config = Settings(Path("r"), Path("a"), Path("n"), Path("p"), Path("d"), Path("m"), (AP1, AP2))
     router = {"responses": {"show status switching-hub macaddress": switch, "show arp": "LAN1 192.0.2.10 00:11:22:33:44:10 20"}}

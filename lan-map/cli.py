@@ -19,7 +19,7 @@ from typing import Any
 
 MAC = re.compile(r"\b(?:[0-9a-f]{2}:){5}[0-9a-f]{2}\b", re.IGNORECASE)
 IPV4 = re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b")
-PORT = re.compile(r"^\s*port\s+(\d+):\d+\s*$", re.IGNORECASE)
+PORT = re.compile(r"^\s*(?:--\s*)?port\s+(\d+):\d+\s*$", re.IGNORECASE)
 CYCLE_SECONDS = 300
 
 
