@@ -162,3 +162,13 @@ def test_dashboard_queries_select_historical_snapshot(tmp_path: Path) -> None:
     assert {"id", "source", "target"} <= results["edges"][0]
     assert len(results["nodes"][1]) > 5
     assert len(results["edges"][1]) > 5
+
+    source_panel = next(panel for panel in dashboard["panels"] if panel["title"] == "Source observations")
+    source_query = source_panel["targets"][0]["rawQueryText"].replace("$__to", query_time)
+    with sqlite3.connect(config.database) as db:
+        sources = {row[0]: row[1:3] for row in db.execute(source_query)}
+    assert sources == {
+        "ap1": ("192.168.100.246", None),
+        "ap2": ("192.168.100.247", "192.168.100.245"),
+        "router": ("192.168.100.1", None),
+    }
