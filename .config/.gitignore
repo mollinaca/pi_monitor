@@ -1,0 +1,3 @@
+# Private Pi configuration. Keep only this marker in Git.
+*
+!.gitignore

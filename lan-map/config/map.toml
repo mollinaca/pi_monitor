@@ -1,7 +1,7 @@
 [map]
 router_snapshot = "/mnt/data/pi_monitor/data/router-probe/latest.json"
 ap_snapshot_directory = "/mnt/data/pi_monitor/data/ap-web-probe"
-device_names_file = "/root/.config/pi_monitor/device-names.toml"
+device_names_file = "/mnt/data/pi_monitor/.config/device-names.toml"
 pi_mac_file = "/sys/class/net/eth0/address"
 pi_wifi_mac_file = "/sys/class/net/wlan0/address"
 database = "/mnt/data/pi_monitor/data/lan-map/history.db"

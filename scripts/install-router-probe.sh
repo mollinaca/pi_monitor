@@ -3,7 +3,7 @@ set -euo pipefail
 
 project_root=/mnt/data/pi_monitor
 probe_root="$project_root/router-probe"
-password_file=/root/.config/pi_monitor/router_password.txt
+password_file=/mnt/data/pi_monitor/.config/router_password.txt
 
 if [[ $EUID -ne 0 ]]; then
     echo "Run this installer as root." >&2

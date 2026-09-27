@@ -6,7 +6,7 @@ does not submit configuration changes. The AP account must be Read Only.
 Create the Pi-only credentials file before installation:
 
 ```toml
-# /root/.config/pi_monitor/ap-web-probe.toml (mode 0600)
+# /mnt/data/pi_monitor/.config/ap-web-probe.toml (mode 0600)
 [auth]
 username = "pi_monitor"
 password = "..."
@@ -25,7 +25,7 @@ dashboard can show the live topology. These values are runtime-only Pi data:
 do not add a real device-name mapping file or any client identifier to Git.
 
 Optional root-only device-name overrides live at
-`/root/.config/pi_monitor/device-names.toml`; start from
+`/mnt/data/pi_monitor/.config/device-names.toml`; start from
 `config/device-names.example.toml` and use mode `0600`.
 
 Current exported metrics are AP-wide associated-client count, and the

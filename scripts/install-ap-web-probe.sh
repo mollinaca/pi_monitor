@@ -3,7 +3,7 @@ set -euo pipefail
 
 project_root=/mnt/data/pi_monitor
 probe_root="$project_root/ap-web-probe"
-credentials_file=/root/.config/pi_monitor/ap-web-probe.toml
+credentials_file=/mnt/data/pi_monitor/.config/ap-web-probe.toml
 
 if [[ $EUID -ne 0 ]]; then
     echo "Run this installer as root." >&2

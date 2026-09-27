@@ -1,13 +1,13 @@
 [probe]
-# Credentials are intentionally stored outside this repository in the
-# root-readable file below.  The installer rejects a credentials file that is
+# Credentials are intentionally stored in the ignored, root-only directory
+# below. The installer rejects a credentials file that is
 # readable by group or other users.
-credentials_file = "/root/.config/pi_monitor/ap-web-probe.toml"
+credentials_file = "/mnt/data/pi_monitor/.config/ap-web-probe.toml"
 metrics_directory = "/mnt/data/pi_monitor/data/node-exporter/textfile"
 metrics_filename = "ap-web.prom"
 # This root-only local file maps MAC addresses to user-defined display names.
-# It is intentionally not part of this repository.
-device_names_file = "/root/.config/pi_monitor/device-names.toml"
+# It is intentionally not part of Git.
+device_names_file = "/mnt/data/pi_monitor/.config/device-names.toml"
 # Current client inventory stays on the Pi and is replaced only after a
 # successful read of each AP. The LAN map checks its collection timestamp.
 snapshot_directory = "/mnt/data/pi_monitor/data/ap-web-probe"

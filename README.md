@@ -27,7 +27,7 @@ pi_monitor/
 ## ポイント
 
 - 監視コンテナと、NetworkManagerやSMARTを操作するホスト側プローブを分離しています。
-- 秘密情報と個人利用データはGitに入れません。`data/`、Grafana DB、プロバイダーから取得した元ファイルは実行環境だけに置きます。
+- 秘密情報と個人利用データはGitに入れません。Pi専用の認証情報・端末名対応表は `/mnt/data/pi_monitor/.config/`（ディレクトリ0700、秘密ファイル0600、Gitでは中身を除外）に置きます。`data/`、Grafana DB、プロバイダーから取得した元ファイルも実行環境だけに置きます。
 - Piへの反映は `git pull --ff-only` を基本とし、永続データは `/mnt/data/pi_monitor/data/` に集約します。
 - 利用履歴はライブテレメトリではなく手動更新です。インポート成否など最小限の状態だけをnode_exporter textfileで公開します。
 
