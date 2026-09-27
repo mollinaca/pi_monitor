@@ -34,7 +34,7 @@
     {
       "datasource": { "type": "frser-sqlite-datasource", "uid": "lan-map-sqlite" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 18, "w": 24, "x": 0, "y": 5 },
+      "gridPos": { "h": 34, "w": 24, "x": 0, "y": 5 },
       "id": 4,
       "options": {},
       "targets": [
@@ -59,7 +59,7 @@
     {
       "datasource": { "type": "frser-sqlite-datasource", "uid": "lan-map-sqlite" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 9, "w": 10, "x": 0, "y": 23 },
+      "gridPos": { "h": 9, "w": 10, "x": 0, "y": 39 },
       "id": 5,
       "options": { "cellHeight": "sm", "showHeader": true },
       "targets": [ { "rawQueryText": "WITH selected AS (SELECT id FROM snapshot WHERE cycle_at <= CAST($__to AS INTEGER) / 1000 ORDER BY cycle_at DESC LIMIT 1) SELECT s.source_id AS source, s.status, datetime(s.observed_at, 'unixepoch', 'localtime') AS observed_at FROM source AS s JOIN selected ON s.snapshot_id = selected.id ORDER BY s.source_id", "queryText": "WITH selected AS (SELECT id FROM snapshot WHERE cycle_at <= CAST($__to AS INTEGER) / 1000 ORDER BY cycle_at DESC LIMIT 1) SELECT s.source_id AS source, s.status, datetime(s.observed_at, 'unixepoch', 'localtime') AS observed_at FROM source AS s JOIN selected ON s.snapshot_id = selected.id ORDER BY s.source_id", "queryType": "table", "refId": "A", "timeColumns": [] } ],
@@ -69,7 +69,7 @@
     {
       "datasource": { "type": "frser-sqlite-datasource", "uid": "lan-map-sqlite" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 9, "w": 14, "x": 10, "y": 23 },
+      "gridPos": { "h": 9, "w": 14, "x": 10, "y": 39 },
       "id": 6,
       "options": { "cellHeight": "sm", "showHeader": true },
       "targets": [ { "rawQueryText": "WITH selected AS (SELECT id FROM snapshot WHERE cycle_at <= CAST($__to AS INTEGER) / 1000 ORDER BY cycle_at DESC LIMIT 1) SELECT n.title AS device, n.kind AS connection, n.mac, n.ip, n.band, n.router_port, n.status FROM node AS n JOIN selected ON n.snapshot_id = selected.id WHERE n.kind IN ('wifi', 'wired', 'port_learned') ORDER BY n.kind, n.title", "queryText": "WITH selected AS (SELECT id FROM snapshot WHERE cycle_at <= CAST($__to AS INTEGER) / 1000 ORDER BY cycle_at DESC LIMIT 1) SELECT n.title AS device, n.kind AS connection, n.mac, n.ip, n.band, n.router_port, n.status FROM node AS n JOIN selected ON n.snapshot_id = selected.id WHERE n.kind IN ('wifi', 'wired', 'port_learned') ORDER BY n.kind, n.title", "queryType": "table", "refId": "A", "timeColumns": [] } ],
