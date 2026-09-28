@@ -1,0 +1,4 @@
+# Keep runtime data out of Git, including files added under this directory.
+*
+!.gitignore
+!.gitkeep

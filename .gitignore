@@ -1,5 +1,7 @@
 # Runtime data
-/data/
+/data/*
+!/data/.gitignore
+!/data/.gitkeep
 /services/grafana/dashboards/energy/
 /logs/
 /wifi-probe/.venv/
