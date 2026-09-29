@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import subprocess
 import sys
 import time
@@ -116,7 +117,20 @@ def numeric(payload: dict[str, Any], *keys: str) -> float | None:
         if not isinstance(current, dict):
             return None
         current = current.get(key)
-    return float(current) if isinstance(current, (int, float)) else None
+    if isinstance(current, bool) or not isinstance(current, (int, float)):
+        return None
+    try:
+        value = float(current)
+    except OverflowError:
+        return None
+    return value if math.isfinite(value) else None
+
+
+def valid_result(payload: dict[str, Any] | None) -> bool:
+    return isinstance(payload, dict) and payload.get("type") == "result" and all(
+        numeric(payload, direction, "bandwidth") is not None
+        for direction in ("download", "upload")
+    )
 
 
 def write_metrics(
@@ -133,7 +147,7 @@ def write_metrics(
     def gauge(name: str, documentation: str) -> Gauge:
         return Gauge(name, documentation, label_names, registry=registry)
 
-    success = payload is not None and command_exit_status == 0
+    success = valid_result(payload) and command_exit_status == 0
     gauge("home_internet_speedtest_probe_success", "1 if the fixed-server Ookla test succeeded").labels(*settings.labels).set(int(success))
     gauge("home_internet_speedtest_probe_timestamp_seconds", "Unix timestamp of the most recent speed test attempt").labels(*settings.labels).set(time.time())
     gauge("home_internet_speedtest_probe_duration_seconds", "Wall-clock duration of the most recent speed test attempt").labels(*settings.labels).set(duration_seconds)
@@ -160,7 +174,10 @@ def write_metrics(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Collect fixed-server Ookla speed test metrics")
     parser.add_argument("--config", required=True, type=Path)
-    args = parser.parse_args(argv)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        return 0 if exc.code == 0 else 1
     try:
         settings = load_settings(args.config)
         exit_status, payload, error, duration = run_speedtest(settings)
@@ -171,10 +188,14 @@ def main(argv: list[str] | None = None) -> int:
             duration_seconds=duration,
         )
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
-        print(f"Internet speed probe failed before writing metrics: {exc}", file=sys.stderr)
+        print(f"internet-speed stage=setup_or_write error={type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
-    if payload is None or exit_status != 0:
-        print(f"Internet speed probe failed: {error or 'no Speedtest result JSON'}", file=sys.stderr)
+    except Exception as exc:
+        print(f"internet-speed stage=unexpected error={type(exc).__name__}", file=sys.stderr)
+        return 1
+    if exit_status != 0 or not valid_result(payload):
+        reason = "timeout" if exit_status == 124 else ("invalid_result" if exit_status == 0 else f"command_exit_{exit_status}")
+        print(f"internet-speed stage=collect error={reason}", file=sys.stderr)
         return 1
     print(f"Internet speed probe | server={settings.server_id} | metrics={destination}")
     return 0

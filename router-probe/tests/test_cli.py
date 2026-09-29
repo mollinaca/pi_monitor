@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from pi_router_probe.cli import clean_cli_output, count_table_rows, load_settings, parse_environment, parse_lan_counters
+from pi_router_probe.cli import Settings, clean_cli_output, count_table_rows, load_settings, parse_environment, parse_lan_counters, write_metrics
 
 
 def test_parse_environment_extracts_rtx1210_uptime() -> None:
@@ -37,3 +37,35 @@ def test_load_settings_rejects_non_lan_interfaces(tmp_path: Path) -> None:
     )
     with pytest.raises(ValueError, match="lan_interfaces"):
         load_settings(config)
+
+
+def test_failed_collection_does_not_emit_zero_resource_values(tmp_path: Path, monkeypatch, capsys) -> None:
+    from pi_router_probe import cli
+
+    settings = Settings(tmp_path / "password", tmp_path, "router.prom", tmp_path / "snapshot", "router", "user", 22, 30, ("lan1",))
+
+    def fail(*_args: object) -> tuple[dict[str, str], float]:
+        raise RuntimeError("router SSH session is not connected")
+
+    monkeypatch.setattr(cli, "collect", fail)
+    failures: list[str] = []
+    output = write_metrics(settings, "password", failures)
+    contents = output.read_text(encoding="utf-8")
+    assert failures == ["RuntimeError"]
+    assert "home_router_probe_success 0.0" in contents
+    assert "home_router_cpu_utilization_percent" not in contents
+    assert "stage=collect" in capsys.readouterr().err
+
+
+def test_main_returns_one_when_router_is_unavailable(tmp_path: Path, monkeypatch) -> None:
+    from pi_router_probe import cli
+
+    settings = Settings(tmp_path / "password", tmp_path, "router.prom", tmp_path / "snapshot", "router", "user", 22, 30, ("lan1",))
+    monkeypatch.setattr(cli, "load_settings", lambda _path: settings)
+    monkeypatch.setattr(cli, "load_password", lambda _path: "password")
+
+    def fail(*_args: object) -> tuple[dict[str, str], float]:
+        raise RuntimeError("router SSH session is not connected")
+
+    monkeypatch.setattr(cli, "collect", fail)
+    assert cli.main(["--config", "unused"]) == 1

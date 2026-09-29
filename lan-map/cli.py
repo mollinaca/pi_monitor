@@ -359,7 +359,7 @@ def read_mac(path: Path) -> str:
     return mac if MAC.fullmatch(mac) else ""
 
 
-def run(settings: Settings, now: float | None = None) -> tuple[int, int]:
+def run(settings: Settings, now: float | None = None) -> tuple[int, int, tuple[str, ...]]:
     now = time.time() if now is None else now
     cycle_at = int(now // CYCLE_SECONDS * CYCLE_SECONDS)
     sources = {"router": load_current(settings.router_snapshot, cycle_at, "router")}
@@ -378,17 +378,27 @@ def run(settings: Settings, now: float | None = None) -> tuple[int, int]:
     )
     save_snapshot(settings, cycle_at, int(now), sources, nodes, edges)
     write_metrics(settings.metrics, int(now), sources, len(nodes))
-    return len(nodes), len(edges)
+    unavailable = tuple(source for source, (snapshot, _) in sources.items() if snapshot is None)
+    return len(nodes), len(edges), unavailable
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build a private LAN map snapshot")
     parser.add_argument("--config", required=True, type=Path)
-    args = parser.parse_args(argv)
     try:
-        nodes, edges = run(load_settings(args.config))
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        return 0 if exc.code == 0 else 1
+    try:
+        nodes, edges, unavailable = run(load_settings(args.config))
     except (OSError, ValueError, sqlite3.Error) as exc:
-        print(f"LAN map failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        print(f"lan-map stage=build_or_write error={type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:
+        print(f"lan-map stage=unexpected error={type(exc).__name__}", file=sys.stderr)
+        return 1
+    if unavailable:
+        print(f"lan-map stage=source error=unavailable sources={','.join(unavailable)}", file=sys.stderr)
         return 1
     print(f"LAN map snapshot saved: {nodes} nodes, {edges} edges")
     return 0

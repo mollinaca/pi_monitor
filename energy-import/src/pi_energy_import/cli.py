@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import os
+import sys
 import time
 from datetime import date, datetime
 from pathlib import Path
@@ -181,14 +182,7 @@ def write_metrics(path: Path, counts: dict[str, int]) -> None:
     write_to_textfile(str(path), registry)
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("workbook", type=Path)
-    parser.add_argument("--data-directory", type=Path, default=Path("data/energy"))
-    parser.add_argument("--dashboard", type=Path, default=Path("services/grafana/dashboards/energy/energy-usage.json"))
-    parser.add_argument("--metrics", type=Path, default=Path("data/node-exporter/textfile/energy-import.prom"))
-    parser.add_argument("--water-csv", type=Path)
-    args = parser.parse_args()
+def run_import(args: argparse.Namespace) -> None:
     workbook = load_workbook(args.workbook, data_only=True, read_only=True)
     imported: dict[str, list[dict[str, str]]] = {}
     args.data_directory.mkdir(parents=True, exist_ok=True)
@@ -213,5 +207,24 @@ def main() -> None:
     write_metrics(args.metrics, counts)
 
 
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("workbook", type=Path)
+    parser.add_argument("--data-directory", type=Path, default=Path("data/energy"))
+    parser.add_argument("--dashboard", type=Path, default=Path("services/grafana/dashboards/energy/energy-usage.json"))
+    parser.add_argument("--metrics", type=Path, default=Path("data/node-exporter/textfile/energy-import.prom"))
+    parser.add_argument("--water-csv", type=Path)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        return 0 if exc.code == 0 else 1
+    try:
+        run_import(args)
+    except Exception as exc:
+        print(f"energy-import stage=import error={type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

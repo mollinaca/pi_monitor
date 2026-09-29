@@ -1,14 +1,24 @@
 import csv
+import io
 import unittest
+from contextlib import redirect_stderr
 
 from pi_energy_import.cli import (
     build_monthly_electricity_panel,
     build_monthly_gas_panel,
     build_water_charge_panel,
+    main,
 )
 
 
 class DashboardPanelTests(unittest.TestCase):
+    def test_missing_workbook_exits_one_without_a_traceback(self) -> None:
+        stderr = io.StringIO()
+        with redirect_stderr(stderr):
+            self.assertEqual(main(["/nonexistent/energy-workbook.xlsx"]), 1)
+        self.assertIn("error=FileNotFoundError", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
+
     def test_monthly_electricity_uses_all_electric_rows_and_only_electric_rows(self) -> None:
         panel = build_monthly_electricity_panel([
             {"kind": "電気", "display_month": "2022-01-01", "status": "表示実績", "usage": "120"},

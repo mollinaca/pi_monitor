@@ -4,7 +4,7 @@ from pathlib import Path
 
 from prometheus_client.parser import text_string_to_metric_families
 
-from pi_ssd_smart_probe.cli import Settings, attribute_raw_values, write_metrics
+from pi_ssd_smart_probe.cli import Settings, attribute_raw_values, valid_smart_payload, write_metrics
 
 
 def payload() -> dict:
@@ -68,5 +68,35 @@ def test_write_metrics_records_probe_failure(tmp_path: Path) -> None:
     values = samples(output)
 
     assert values["home_ssd_smart_probe_success"] == 0
-    assert values["home_ssd_smart_overall_passed"] == 0
+    assert "home_ssd_smart_overall_passed" not in values
     assert values["home_ssd_smart_command_exit_status"] == 2
+
+
+def test_unknown_health_is_not_reported_as_failed_health(tmp_path: Path) -> None:
+    settings = Settings("/dev/sda", "sat", tmp_path, "ssd-smart.prom")
+    output = write_metrics(settings, command_exit_status=0, payload={"temperature": {"current": 40}})
+    values = samples(output)
+    assert not valid_smart_payload({"temperature": {"current": 40}})
+    assert values["home_ssd_smart_probe_success"] == 0
+    assert "home_ssd_smart_overall_passed" not in values
+
+
+def test_unhealthy_device_is_still_a_successful_read(tmp_path: Path) -> None:
+    settings = Settings("/dev/sda", "sat", tmp_path, "ssd-smart.prom")
+    output = write_metrics(settings, command_exit_status=8, payload={"smart_status": {"passed": False}})
+    values = samples(output)
+    assert valid_smart_payload({"smart_status": {"passed": False}})
+    assert values["home_ssd_smart_probe_success"] == 1
+    assert values["home_ssd_smart_overall_passed"] == 0
+
+
+def test_main_distinguishes_invalid_read_from_unhealthy_device(tmp_path: Path, monkeypatch, capsys) -> None:
+    from pi_ssd_smart_probe import cli
+
+    settings = Settings("/dev/sda", "sat", tmp_path, "ssd-smart.prom")
+    monkeypatch.setattr(cli, "load_settings", lambda _path: settings)
+    monkeypatch.setattr(cli, "run_smartctl", lambda _settings: (0, {}, ""))
+    assert cli.main(["--config", "unused"]) == 1
+    assert "error=invalid_result" in capsys.readouterr().err
+    monkeypatch.setattr(cli, "run_smartctl", lambda _settings: (8, {"smart_status": {"passed": False}}, ""))
+    assert cli.main(["--config", "unused"]) == 0

@@ -58,6 +58,7 @@ def run_smartctl(settings: Settings) -> tuple[int, dict[str, Any] | None, str]:
         check=False,
         capture_output=True,
         text=True,
+        timeout=120,
     )
     try:
         payload = json.loads(completed.stdout)
@@ -92,6 +93,10 @@ def nested_value(payload: dict[str, Any], *keys: str) -> Any:
     return current
 
 
+def valid_smart_payload(payload: dict[str, Any] | None) -> bool:
+    return isinstance(payload, dict) and isinstance(nested_value(payload, "smart_status", "passed"), bool)
+
+
 def write_metrics(
     settings: Settings,
     *,
@@ -105,8 +110,8 @@ def write_metrics(
     def gauge(name: str, documentation: str) -> Gauge:
         return Gauge(name, documentation, ("device",), registry=registry)
 
-    parsed = payload is not None
-    gauge("home_ssd_smart_probe_success", "1 if smartctl returned parseable SMART JSON").labels(
+    parsed = valid_smart_payload(payload)
+    gauge("home_ssd_smart_probe_success", "1 if smartctl returned usable SMART JSON").labels(
         *labels
     ).set(int(parsed))
     gauge(
@@ -118,7 +123,7 @@ def write_metrics(
         "smartctl process exit status bitmask from the most recent probe",
     ).labels(*labels).set(command_exit_status)
 
-    if payload is not None:
+    if parsed and payload is not None:
         smart_status = nested_value(payload, "smart_status", "passed")
         gauge(
             "home_ssd_smart_overall_passed",
@@ -146,15 +151,14 @@ def write_metrics(
                 "Number of entries in the SMART error log",
                 nested_value(payload, "ata_smart_error_log", "summary", "count"),
             ),
-            (
-                "home_ssd_smart_self_test_passed",
-                "1 if the most recent SMART self-test passed",
-                int(nested_value(payload, "ata_smart_data", "self_test", "status", "passed") is True),
-            ),
         )
         for name, documentation, value in optional_values:
             if isinstance(value, (int, float)):
                 gauge(name, documentation).labels(*labels).set(value)
+
+        self_test_passed = nested_value(payload, "ata_smart_data", "self_test", "status", "passed")
+        if isinstance(self_test_passed, bool):
+            gauge("home_ssd_smart_self_test_passed", "1 if the most recent SMART self-test passed").labels(*labels).set(int(self_test_passed))
 
         attributes = attribute_raw_values(payload)
         attribute_metrics = (
@@ -179,12 +183,6 @@ def write_metrics(
             value = attributes.get(identifier)
             if value is not None:
                 gauge(name, documentation).labels(*labels).set(value)
-    else:
-        gauge(
-            "home_ssd_smart_overall_passed",
-            "1 if the device SMART overall-health assessment passed",
-        ).labels(*labels).set(0)
-
     write_to_textfile(str(settings.metrics_path), registry)
     return settings.metrics_path
 
@@ -192,7 +190,10 @@ def write_metrics(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Collect external SSD SMART metrics")
     parser.add_argument("--config", required=True, type=Path)
-    args = parser.parse_args(argv)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        return 0 if exc.code == 0 else 1
     try:
         settings = load_settings(args.config)
         exit_status, payload, error = run_smartctl(settings)
@@ -200,11 +201,14 @@ def main(argv: list[str] | None = None) -> int:
             settings, command_exit_status=exit_status, payload=payload
         )
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
-        print(f"SSD SMART probe failed before writing metrics: {exc}", file=sys.stderr)
+        print(f"ssd-smart stage=setup_or_write error={type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:
+        print(f"ssd-smart stage=unexpected error={type(exc).__name__}", file=sys.stderr)
         return 1
 
-    if payload is None:
-        print(f"SSD SMART probe returned no parseable JSON: {error}", file=sys.stderr)
+    if not valid_smart_payload(payload):
+        print("ssd-smart stage=collect error=invalid_result", file=sys.stderr)
         return 1
     print(
         f"SSD SMART probe | parsed=true | smartctl_exit={exit_status} | metrics={destination}"

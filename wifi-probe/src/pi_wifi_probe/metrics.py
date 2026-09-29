@@ -20,7 +20,7 @@ def write_metrics(
     def gauge(name: str, documentation: str) -> Gauge:
         return Gauge(name, documentation, label_names, registry=registry)
 
-    gauge("home_wifi_probe_success", "1 if the complete Wi-Fi probe succeeded").labels(
+    gauge("home_wifi_probe_success", "1 if association and both pings had no packet loss").labels(
         *labels
     ).set(int(result.success))
     stage_success = Gauge(

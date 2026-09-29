@@ -125,12 +125,29 @@ def test_write_metrics_records_failure_without_client_identifiers(tmp_path: Path
         raise RuntimeError("unavailable")
 
     monkeypatch.setattr("pi_ap_web_probe.cli.collect_target", fail)
-    output = write_metrics(settings, Credentials("user", "password"))
+    failures: list[str] = []
+    output = write_metrics(settings, Credentials("user", "password"), failures)
     values = {
         sample.name: sample.value
         for family in text_string_to_metric_families(output.read_text(encoding="utf-8"))
         for sample in family.samples
     }
     assert values["home_ap_web_probe_success"] == 0
+    assert failures == ["ap1"]
     assert "00:11:22:33:44:55" not in output.read_text(encoding="utf-8")
     assert output.stat().st_mode & 0o777 == 0o644
+
+
+def test_main_returns_one_after_ap_collection_failure(tmp_path: Path, monkeypatch, capsys) -> None:
+    from pi_ap_web_probe import cli
+
+    settings = Settings(tmp_path / "credentials.toml", tmp_path, "ap-web.prom", (Target("ap1", "192.0.2.1", False, 1),))
+    monkeypatch.setattr(cli, "load_settings", lambda _path: settings)
+    monkeypatch.setattr(cli, "load_credentials", lambda _path: Credentials("user", "password"))
+
+    def fail(*_args: object) -> tuple[object, object, float]:
+        raise RuntimeError("AP browser login did not complete")
+
+    monkeypatch.setattr(cli, "collect_target", fail)
+    assert cli.main(["--config", "unused"]) == 1
+    assert "target=ap1" in capsys.readouterr().err

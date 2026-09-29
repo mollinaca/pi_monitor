@@ -414,7 +414,7 @@ def write_client_snapshot(directory: Path, target: Target, records: list[dict[st
     temporary.replace(destination)
 
 
-def write_metrics(settings: Settings, credentials: Credentials) -> Path:
+def write_metrics(settings: Settings, credentials: Credentials, failures: list[str] | None = None) -> Path:
     settings.metrics_directory.mkdir(parents=True, exist_ok=True)
     registry = CollectorRegistry()
     labels = ("ap", "address")
@@ -469,8 +469,11 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
                     band_data_rate.labels(*values, band).set(
                         aggregate["data_rate_total"] / aggregate["data_rate_samples"]
                     )
-        except (OSError, RuntimeError, ValueError, json.JSONDecodeError, WebDriverException) as exc:
-            print(f"AP web probe failed for {target.identifier}: {type(exc).__name__}: {exc}", file=sys.stderr)
+        except (OSError, RuntimeError, ValueError, KeyError, TypeError, json.JSONDecodeError, WebDriverException) as exc:
+            if failures is not None:
+                failures.append(target.identifier)
+            detail = str(exc) if type(exc) is RuntimeError else type(exc).__name__
+            print(f"ap-web target={target.identifier} stage=collect error={detail}", file=sys.stderr)
             success.labels(*values).set(0)
     write_to_textfile(str(settings.metrics_path), registry)
     # The probe runs as root to protect the AP credential, while node_exporter
@@ -483,13 +486,22 @@ def write_metrics(settings: Settings, credentials: Credentials) -> Path:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Collect read-only AP web UI metrics")
     parser.add_argument("--config", required=True, type=Path)
-    args = parser.parse_args(argv)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        return 0 if exc.code == 0 else 1
+    failures: list[str] = []
     try:
         settings = load_settings(args.config)
         credentials = load_credentials(settings.credentials_file)
-        destination = write_metrics(settings, credentials)
+        destination = write_metrics(settings, credentials, failures)
     except (OSError, ValueError) as exc:
-        print(f"AP web probe failed before writing metrics: {exc}", file=sys.stderr)
+        print(f"ap-web stage=setup_or_write error={type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:
+        print(f"ap-web stage=unexpected error={type(exc).__name__}", file=sys.stderr)
+        return 1
+    if failures:
         return 1
     print(f"AP web probe metrics written to {destination}")
     return 0

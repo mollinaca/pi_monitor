@@ -4,7 +4,7 @@ from pathlib import Path
 
 from prometheus_client.parser import text_string_to_metric_families
 
-from pi_internet_speed_probe.cli import Settings, parse_result, write_metrics
+from pi_internet_speed_probe.cli import Settings, parse_result, valid_result, write_metrics
 
 
 def settings(directory: Path) -> Settings:
@@ -55,3 +55,28 @@ def test_write_metrics_records_a_failed_test_without_false_zero_speed(tmp_path: 
     assert values["home_internet_speedtest_probe_success"] == 0
     assert values["home_internet_speedtest_command_exit_status"] == 1
     assert "home_internet_speedtest_download_bytes_per_second" not in values
+
+
+def test_result_without_required_bandwidth_is_a_collection_error(tmp_path: Path) -> None:
+    incomplete = {"type": "result", "download": {"bandwidth": 10}}
+    assert not valid_result(incomplete)
+    output = write_metrics(settings(tmp_path), command_exit_status=0, payload=incomplete, duration_seconds=1)
+    values = samples(output)
+    assert values["home_internet_speedtest_probe_success"] == 0
+    assert "home_internet_speedtest_download_bytes_per_second" not in values
+
+
+def test_zero_bandwidth_is_a_valid_numeric_result() -> None:
+    result = payload()
+    result["download"]["bandwidth"] = 0
+    assert valid_result(result)
+
+
+def test_main_returns_one_for_incomplete_result(tmp_path: Path, monkeypatch, capsys) -> None:
+    from pi_internet_speed_probe import cli
+
+    monkeypatch.setattr(cli, "load_settings", lambda _path: settings(tmp_path))
+    monkeypatch.setattr(cli, "run_speedtest", lambda _settings: (0, {"type": "result"}, "", 1.0))
+    assert cli.main(["--config", "unused"]) == 1
+    assert "error=invalid_result" in capsys.readouterr().err
+    assert samples(tmp_path / "internet-speed.prom")["home_internet_speedtest_probe_success"] == 0

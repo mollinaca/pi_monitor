@@ -131,11 +131,20 @@ def test_run_saves_single_cycle_and_rejects_stale_ap_snapshot(tmp_path: Path) ->
     assert config.database.stat().st_mode & 0o777 == 0o640
     assert 'home_lan_map_source_fresh{source="ap1"} 1' in config.metrics.read_text(encoding="utf-8")
 
-    run(config, cycle_at + 510)
+    assert run(config, cycle_at + 510)[2] == ("router", "ap1", "ap2")
     with sqlite3.connect(config.database) as db:
         assert db.execute("SELECT count(*) FROM snapshot").fetchone()[0] == 2
         assert db.execute("SELECT status FROM source WHERE source_id='ap1' ORDER BY snapshot_id DESC LIMIT 1").fetchone()[0] == "unavailable"
         assert db.execute("SELECT count(*) FROM edge WHERE evidence='ap_association' AND snapshot_id=(SELECT max(id) FROM snapshot)").fetchone()[0] == 0
+
+
+def test_main_returns_one_for_incomplete_map(monkeypatch, capsys) -> None:
+    import cli
+
+    monkeypatch.setattr(cli, "load_settings", lambda _path: object())
+    monkeypatch.setattr(cli, "run", lambda _settings: (2, 0, ("ap2",)))
+    assert cli.main(["--config", "unused"]) == 1
+    assert "sources=ap2" in capsys.readouterr().err
 
 
 def test_dashboard_queries_select_historical_snapshot(tmp_path: Path) -> None:

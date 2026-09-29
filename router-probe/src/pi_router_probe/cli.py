@@ -214,15 +214,12 @@ def write_snapshot(settings: Settings, responses: dict[str, str]) -> None:
     temporary.replace(destination)
 
 
-def write_metrics(settings: Settings, password: str) -> Path:
+def write_metrics(settings: Settings, password: str, failures: list[str] | None = None) -> Path:
     settings.metrics_directory.mkdir(parents=True, exist_ok=True)
     registry = CollectorRegistry()
     success = Gauge("home_router_probe_success", "1 if the read-only router SSH probe succeeded", registry=registry)
     attempt = Gauge("home_router_probe_timestamp_seconds", "Unix timestamp of the latest router probe attempt", registry=registry)
     duration = Gauge("home_router_probe_duration_seconds", "Wall-clock duration of the latest router probe", registry=registry)
-    cpu = Gauge("home_router_cpu_utilization_percent", "Router CPU utilization reported by show environment", registry=registry)
-    memory = Gauge("home_router_memory_utilization_percent", "Router memory utilization reported by show environment", registry=registry)
-    uptime = Gauge("home_router_uptime_seconds", "Router uptime when reported as seconds by the CLI", registry=registry)
     table_entries = Gauge("home_router_table_entries", "Current entries reported by router tables", ("table",), registry=registry)
     interface_counters = Gauge("home_router_interface_counter", "Router interface counters reported by show status lanN", ("interface", "counter"), registry=registry)
     attempt.set(time.time())
@@ -230,20 +227,38 @@ def write_metrics(settings: Settings, password: str) -> Path:
     try:
         responses, elapsed = collect(settings, password)
         environment = parse_environment(responses["show environment"])
-        for name, gauge in (("cpu_percent", cpu), ("memory_percent", memory), ("uptime_seconds", uptime)):
-            if name in environment:
-                gauge.set(environment[name])
-        table_entries.labels("dhcp").set(count_table_rows(responses["show status dhcp"]))
-        table_entries.labels("arp").set(count_table_rows(responses["show arp"]))
-        table_entries.labels("switching_hub_mac").set(count_table_rows(responses["show status switching-hub macaddress"], mac_only=True))
-        for interface in settings.lan_interfaces:
-            for counter, value in parse_lan_counters(responses[f"show status {interface}"]).items():
-                interface_counters.labels(interface, counter).set(value)
+        if not {"cpu_percent", "memory_percent", "uptime_seconds"} <= environment.keys():
+            raise ValueError("required router resource fields are missing")
+        table_counts = {
+            "dhcp": count_table_rows(responses["show status dhcp"]),
+            "arp": count_table_rows(responses["show arp"]),
+            "switching_hub_mac": count_table_rows(responses["show status switching-hub macaddress"], mac_only=True),
+        }
+        counters_by_interface = {
+            interface: parse_lan_counters(responses[f"show status {interface}"])
+            for interface in settings.lan_interfaces
+        }
+        if any(not {"receive_bytes", "transmit_bytes"} <= counters.keys() for counters in counters_by_interface.values()):
+            raise ValueError("required router interface counters are missing")
         write_snapshot(settings, responses)
+        for name, metric_name, description in (
+            ("cpu_percent", "home_router_cpu_utilization_percent", "Router CPU utilization reported by show environment"),
+            ("memory_percent", "home_router_memory_utilization_percent", "Router memory utilization reported by show environment"),
+            ("uptime_seconds", "home_router_uptime_seconds", "Router uptime when reported as seconds by the CLI"),
+        ):
+            Gauge(metric_name, description, registry=registry).set(environment[name])
+        for table, count in table_counts.items():
+            table_entries.labels(table).set(count)
+        for interface in settings.lan_interfaces:
+            for counter, value in counters_by_interface[interface].items():
+                interface_counters.labels(interface, counter).set(value)
         success.set(1)
         duration.set(elapsed)
-    except (OSError, ValueError, RuntimeError, pexpect.ExceptionPexpect) as exc:
-        print(f"Router probe failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError, pexpect.ExceptionPexpect) as exc:
+        if failures is not None:
+            failures.append(type(exc).__name__)
+        detail = str(exc) if type(exc) in (RuntimeError, ValueError) else type(exc).__name__
+        print(f"router stage=collect error={detail}", file=sys.stderr)
         success.set(0)
         duration.set(time.monotonic() - started)
     write_to_textfile(str(settings.metrics_path), registry)
@@ -254,12 +269,21 @@ def write_metrics(settings: Settings, password: str) -> Path:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Collect read-only Yamaha router SSH metrics")
     parser.add_argument("--config", required=True, type=Path)
-    args = parser.parse_args(argv)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        return 0 if exc.code == 0 else 1
+    failures: list[str] = []
     try:
         settings = load_settings(args.config)
-        destination = write_metrics(settings, load_password(settings.password_file))
+        destination = write_metrics(settings, load_password(settings.password_file), failures)
     except (OSError, ValueError) as exc:
-        print(f"Router probe failed before writing metrics: {exc}", file=sys.stderr)
+        print(f"router stage=setup_or_write error={type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:
+        print(f"router stage=unexpected error={type(exc).__name__}", file=sys.stderr)
+        return 1
+    if failures:
         return 1
     print(f"Router probe metrics written to {destination}")
     return 0

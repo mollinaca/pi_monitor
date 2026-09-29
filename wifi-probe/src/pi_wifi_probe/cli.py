@@ -73,7 +73,7 @@ def _select_targets(
 
 
 def _summary(result: ProbeResult, metrics_path: Path) -> str:
-    status = "SUCCESS" if result.success else "FAILED"
+    status = "SUCCESS" if result.success else ("DEGRADED" if result.failed_stage == "connectivity" else "FAILED")
     values = [
         f"{result.target.ap} {result.target.band}",
         status,
@@ -93,8 +93,16 @@ def _summary(result: ProbeResult, metrics_path: Path) -> str:
     return " | ".join(values)
 
 
+def _collection_failed(result: ProbeResult) -> bool:
+    # Parsed packet loss is a measurement, not a failure to collect it.
+    return result.failed_stage not in ("none", "connectivity")
+
+
 def run(arguments: list[str] | None = None) -> int:
-    args = build_parser().parse_args(arguments)
+    try:
+        args = build_parser().parse_args(arguments)
+    except SystemExit as exc:
+        return 0 if exc.code == 0 else 1
     try:
         config = load_config(args.config)
         selected_for_validation = (
@@ -127,15 +135,21 @@ def run(arguments: list[str] | None = None) -> int:
                 metrics_path = write_metrics(
                     result, config.settings.metrics_directory, last_success
                 )
-                print(_summary(result, metrics_path))
-                failed = failed or not result.success
+                if _collection_failed(result):
+                    print(f"wifi-probe target={target.id} stage={result.failed_stage} error=collection_failed", file=sys.stderr)
+                    failed = True
+                else:
+                    print(_summary(result, metrics_path))
             if advance_rotation:
                 state.next_index = (state.next_index + 1) % len(config.targets)
             save_state(config.settings.state_path, state)
             return 1 if failed else 0
     except (ConfigError, ProbeError, RuntimeError, OSError) as exc:
-        print(f"pi-wifi-probe: {exc}", file=sys.stderr)
-        return 2
+        print(f"wifi-probe stage=setup_or_write error={type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:
+        print(f"wifi-probe stage=unexpected error={type(exc).__name__}", file=sys.stderr)
+        return 1
 
 
 def main() -> None:
