@@ -33,9 +33,8 @@ scrape_configs:
 
   - job_name: ssd-smart
     # This reads the already-generated textfile only. The smartctl probe is
-    # still run by systemd once daily; five-minute scraping makes a manual
-    # validation visible promptly in Grafana without issuing SMART commands.
-    scrape_interval: 5m
+    # still run by systemd once daily; hourly scraping never issues SMART commands.
+    scrape_interval: 1h
     scrape_timeout: 15s
     static_configs:
       - targets:
@@ -51,7 +50,7 @@ scrape_configs:
   - job_name: internet-speed
     # The Ookla test is independently scheduled every 30 minutes. This job
     # only reads its textfile output and never generates test traffic itself.
-    scrape_interval: 1m
+    scrape_interval: 30m
     static_configs:
       - targets:
           - node-exporter:9100
@@ -63,9 +62,9 @@ scrape_configs:
         action: keep
 
   - job_name: ap-web
-    # The AP web probe is independently scheduled every minute. This job only
+    # The AP web probe is independently scheduled every five minutes. This job only
     # reads its textfile output; it never opens an AP management session.
-    scrape_interval: 1m
+    scrape_interval: 3m
     static_configs:
       - targets:
           - node-exporter:9100
@@ -79,7 +78,7 @@ scrape_configs:
   - job_name: router
     # The router probe is independently scheduled on the Pi. Prometheus only
     # reads its textfile and never opens an SSH session to the router.
-    scrape_interval: 1m
+    scrape_interval: 3m
     static_configs:
       - targets:
           - node-exporter:9100

@@ -36,7 +36,7 @@ pi_monitor/
 - Gatus: LANとインターネットのヘルスダッシュボード
 - Wi-Fi probe: AP・周波数帯ごとの無線品質をホスト上で測定
 - node_exporter: Wi-Fi probeの測定値とホストメトリクスを公開
-- Prometheus: Gatusを30秒ごと、Piのnode_exporterを1分ごとに収集し、時系列データを保存
+- Prometheus: GatusとPiのnode_exporterをジョブごとの間隔で収集し、時系列データを保存
 - Grafana: Prometheusのデータを可視化
 
 Gatus、Wi-Fi probe、node_exporter、Prometheus、Grafanaを実装済みです。Prometheusはnode_exporterとGatusを収集します。
@@ -108,7 +108,7 @@ Gatusの履歴は、外部ストレージ上の `/mnt/data/pi_monitor/data/gatus
 
 Ookla Speedtest CLIをPiホスト上で実行し、固定した東京の測定サーバー（ID `48463`）に対する下り・上り速度、idle latency、jitter、試験通信量、成否を収集します。Piの通常経路である有線`eth0`へ明示的にバインドするため、これは有線LAN地点から見たインターネット接続性能です。Wi-Fi区間の実効速度を表すものではありません。
 
-速度試験は帯域と通信量を大きく使うため、Prometheusのscrapeでは実行しません。`pi-internet-speed-probe.timer` が毎時00分・30分に実行し、結果を `data/node-exporter/textfile/internet-speed.prom` へ出力します。Prometheusの`internet-speed`ジョブは1分ごとに既存のTextfileを読むだけです。
+速度試験は帯域と通信量を大きく使うため、Prometheusのscrapeでは実行しません。`pi-internet-speed-probe.timer` が毎時00分・30分に実行し、結果を `data/node-exporter/textfile/internet-speed.prom` へ出力します。Prometheusの`internet-speed`ジョブは30分ごとに既存のTextfileを読むだけです。
 
 導入後は手動実行で結果を確認してからtimerを有効化します。
 
@@ -201,7 +201,7 @@ Grafanaの`Pi Hardware`フォルダにある`Raspberry Pi Hardware`ダッシュ�
 
 microSDカードには、一般に残寿命や残書込み回数を示す標準的な取得方法がありません。このため、容量、書込み量、I/O待ち、I/O利用率を早期警戒のためのトレンドとして監視します。
 
-外部SSDのSMARTは、ホスト上の`ssd-smart-probe`が毎日03:17に読み取り専用で収集します。プローブはSMART自己テストを開始せず、結果を`data/node-exporter/textfile/ssd-smart.prom`へ出力します。PrometheusはSMARTメトリクスだけを専用の5分ジョブで読み込みますが、これは既に生成されたTextfileを読むだけであり、SMARTコマンドの実行頻度は日次のままです。手動試験の結果もGrafanaへ速やかに反映できます。
+外部SSDのSMARTは、ホスト上の`ssd-smart-probe`が毎日03:17に読み取り専用で収集します。プローブはSMART自己テストを開始せず、結果を`data/node-exporter/textfile/ssd-smart.prom`へ出力します。PrometheusはSMARTメトリクスだけを専用の1時間ジョブで読み込みますが、これは既に生成されたTextfileを読むだけであり、SMARTコマンドの実行頻度は日次のままです。手動試験の結果は次回scrape時にGrafanaへ反映されます。
 
 初回導入後は、timerを有効化する前に手動で結果を確認します。
 
