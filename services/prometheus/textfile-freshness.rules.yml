@@ -1,0 +1,17 @@
+groups:
+  - name: textfile-freshness
+    rules:
+      - alert: HomeTextfileStale
+        expr: time() - node_textfile_mtime_seconds{job="raspberry-pi",file=~"/textfile/(ap-web|internet-speed|lan-map|router|wifi-ap1_24|wifi-ap1_50|wifi-ap2_24|wifi-ap2_50)\\.prom"} > 86400
+        labels:
+          severity: warning
+        annotations:
+          summary: "Textfile has not been updated for 24 hours: {{ $labels.file }}"
+          description: "Check the matching systemd timer and service journal on the Pi. No notification receiver is configured."
+      - alert: HomeSmartTextfileStale
+        expr: time() - node_textfile_mtime_seconds{job="raspberry-pi",file="/textfile/ssd-smart.prom"} > 108000
+        labels:
+          severity: warning
+        annotations:
+          summary: "SMART textfile has not been updated for 30 hours"
+          description: "Check pi-ssd-smart-probe.timer and its service journal on the Pi. No notification receiver is configured."

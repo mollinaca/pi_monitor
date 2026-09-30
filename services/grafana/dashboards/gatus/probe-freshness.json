@@ -1,0 +1,54 @@
+{
+  "annotations": { "list": [] },
+  "description": "Shows when scheduled probe textfiles were last updated. This checks file freshness, not whether the most recent probe succeeded.",
+  "editable": false,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }, "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
+      "targets": [ { "expr": "count(ALERTS{alertname=~\"Home(Textfile|SmartTextfile)Stale\",alertstate=\"firing\"}) or vector(0)", "instant": true, "refId": "A" } ],
+      "title": "Stale textfiles",
+      "type": "stat"
+    },
+    {
+      "gridPos": { "h": 7, "w": 18, "x": 6, "y": 0 },
+      "id": 2,
+      "options": { "content": "### Freshness check\n\n- Scheduled AP Web, Router, Wi-Fi, internet speed, and LAN Map files become stale after **24 hours** without an update. The daily SSD SMART file has a **30-hour** limit.\n- The manually run energy import is excluded. The panels below show each existing file's age.\n- A stale file appears here and in Prometheus **Alerts**. No notification receiver is configured. A missing or never-created file is outside this check.\n- When adding a probe or monitored file, update the Prometheus freshness rules, this dashboard, and the README.", "mode": "markdown" },
+      "title": "About this dashboard",
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 1, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 24 } ] }, "unit": "h" }, "overrides": [] },
+      "gridPos": { "h": 13, "w": 16, "x": 0, "y": 7 },
+      "id": 3,
+      "options": { "displayMode": "gradient", "minVizHeight": 16, "namePlacement": "left", "orientation": "horizontal", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showUnfilled": true, "valueMode": "color" },
+      "targets": [ { "expr": "(time() - node_textfile_mtime_seconds{job=\"raspberry-pi\",file=~\"/textfile/(ap-web|internet-speed|lan-map|router|wifi-ap1_24|wifi-ap1_50|wifi-ap2_24|wifi-ap2_50)\\\\.prom\"}) / 3600", "instant": true, "legendFormat": "{{file}}", "refId": "A" } ],
+      "title": "Hours since last update (24h limit)",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 1, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 30 } ] }, "unit": "h" }, "overrides": [] },
+      "gridPos": { "h": 13, "w": 8, "x": 16, "y": 7 },
+      "id": 4,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
+      "targets": [ { "expr": "(time() - node_textfile_mtime_seconds{job=\"raspberry-pi\",file=\"/textfile/ssd-smart.prom\"}) / 3600", "instant": true, "refId": "A" } ],
+      "title": "SMART update age (30h limit)",
+      "type": "stat"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 42,
+  "tags": [ "network", "probe", "freshness" ],
+  "time": { "from": "now-7d", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Probe Freshness",
+  "uid": "probe-freshness",
+  "version": 1
+}

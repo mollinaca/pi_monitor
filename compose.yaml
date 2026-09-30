@@ -67,6 +67,7 @@ services:
         max-file: "3"
     volumes:
       - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./services/prometheus/textfile-freshness.rules.yml:/etc/prometheus/textfile-freshness.rules.yml:ro
       - /mnt/data/pi_monitor/data/prometheus:/prometheus
 
   grafana:

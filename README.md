@@ -183,6 +183,24 @@ node_exporterのポート9100はPi自身のlocalhostだけに公開します。W
 `data/node-exporter/textfile/*.prom` とPiのCPU、メモリ、ディスクなどのホスト指標を公開し、
 PrometheusからはCompose内部ネットワーク経由で収集します。
 
+### 定期プローブのtextfile鮮度
+
+node_exporterの`node_textfile_mtime_seconds`を使い、定期プローブがtextfileを更新しなくなった場合を検出します。
+`ap-web.prom`、`router.prom`、`internet-speed.prom`、`lan-map.prom`、4つの`wifi-*.prom`は
+最終更新から24時間、日次の`ssd-smart.prom`は実行時刻のずれを見込んで30時間を超えると
+Prometheusの`HomeTextfileStale`または`HomeSmartTextfileStale`アラートが発火します。
+手動実行の`energy-import.prom`は対象外です。
+
+結果はGrafanaの`Network Health`フォルダーにある`Probe Freshness`ダッシュボードと、
+Pi上のPrometheusの`/alerts`で確認できます。現在は通知先を設定していないため、
+アラートが発火してもメールや端末への通知は届きません。これは既存ファイルの更新停止を
+検出する設定です。ファイルが削除された場合や一度も生成されていない場合は検出しません。
+
+今後、定期プローブ・監視対象・textfileを追加または改名する場合は、
+`services/prometheus/textfile-freshness.rules.yml`の対象ファイルと期限、
+`services/grafana/dashboards/gatus/probe-freshness.json`の表示対象と期限も合わせて更新してください。
+手動実行のデータは、更新期限を定めて監視する必要がある場合にのみ追加します。
+
 Prometheusのポート9090もPi自身のlocalhostだけに公開します。SSHポートフォワードで
 一時的にUIを確認する場合は、作業端末で次を実行します。
 
