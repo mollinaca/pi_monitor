@@ -136,7 +136,8 @@ def run(arguments: list[str] | None = None) -> int:
                     result, config.settings.metrics_directory, last_success
                 )
                 if _collection_failed(result):
-                    print(f"wifi-probe target={target.id} stage={result.failed_stage} error=collection_failed", file=sys.stderr)
+                    detail = result.failure_reason or "collection_failed"
+                    print(f"wifi-probe target={target.id} stage={result.failed_stage} error={detail}", file=sys.stderr)
                     failed = True
                 else:
                     print(_summary(result, metrics_path))

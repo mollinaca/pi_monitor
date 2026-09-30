@@ -56,3 +56,4 @@ class ProbeResult:
     internet_packet_loss_ratio: float | None = None
     internet_latency_seconds: float | None = None
     failed_stage: str = "none"
+    failure_reason: str = ""

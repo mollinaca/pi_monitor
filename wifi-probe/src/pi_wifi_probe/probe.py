@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ipaddress
+import json
 import os
 import shutil
 import subprocess
@@ -114,7 +115,6 @@ class WifiProbe:
         self.runner = runner or CommandRunner()
         self._radio_was_enabled = False
         self._radio_state_known = False
-        self._route_installed = False
         self._active_connection: str | None = None
 
     def _radio_enabled(self) -> bool:
@@ -127,24 +127,37 @@ class WifiProbe:
             raise ProbeError("preflight", "management default route changed unexpectedly")
 
     def _cleanup_routes(self) -> None:
-        while True:
+        for _ in range(16):
             deleted = self.runner.run(
                 ["ip", "rule", "del", "table", str(self.settings.route_table)],
                 check=False,
             )
             if deleted.returncode != 0:
                 break
-        self.runner.run(
+        else:
+            raise ProbeError("cleanup", "too many probe routing rules")
+        flushed = self.runner.run(
             ["ip", "route", "flush", "table", str(self.settings.route_table)],
             check=False,
         )
-        self._route_installed = False
+        if flushed.returncode != 0:
+            raise ProbeError("cleanup", "could not flush probe route table")
+        try:
+            rules = json.loads(self.runner.run(["ip", "-j", "-4", "rule", "show"]).stdout)
+            routes = json.loads(
+                self.runner.run(
+                    ["ip", "-j", "-4", "route", "show", "table", str(self.settings.route_table)]
+                ).stdout
+            )
+        except json.JSONDecodeError as exc:
+            raise ProbeError("cleanup", "could not inspect probe routes") from exc
+        if routes or any(str(rule.get("table")) == str(self.settings.route_table) for rule in rules):
+            raise ProbeError("cleanup", "probe routes remain after cleanup")
 
     def _install_routes(self, address_with_prefix: str) -> str:
         interface = ipaddress.ip_interface(address_with_prefix)
         source = str(interface.ip)
         self._cleanup_routes()
-        self._route_installed = True
         self.runner.run(
             [
                 "ip",
@@ -299,31 +312,61 @@ class WifiProbe:
             result.failed_stage = "none" if result.success else "connectivity"
         except ProbeError as exc:
             result.failed_stage = exc.stage
+            result.failure_reason = str(exc)
         except RuntimeError:
             result.failed_stage = "command"
+            result.failure_reason = "command failed"
         finally:
             result.duration_seconds = time.monotonic() - started
             try:
                 self.cleanup()
-            except (ProbeError, RuntimeError):
+            except (ProbeError, RuntimeError) as exc:
                 result.success = False
                 result.failed_stage = "cleanup"
+                result.failure_reason = str(exc)
         return result
 
     def cleanup(self) -> None:
-        if self._route_installed:
+        errors: list[str] = []
+        try:
             self._cleanup_routes()
+        except (ProbeError, RuntimeError):
+            errors.append("probe routes")
         if self._active_connection is not None:
-            self.runner.run(
-                ["nmcli", "connection", "down", self._active_connection],
-                check=False,
-            )
+            try:
+                self.runner.run(
+                    ["nmcli", "connection", "down", self._active_connection],
+                    check=False,
+                )
+            except RuntimeError:
+                errors.append("Wi-Fi disconnect command")
             self._active_connection = None
         else:
-            self.runner.run(
-                ["nmcli", "device", "disconnect", self.settings.interface],
-                check=False,
-            )
+            try:
+                self.runner.run(
+                    ["nmcli", "device", "disconnect", self.settings.interface],
+                    check=False,
+                )
+            except RuntimeError:
+                errors.append("Wi-Fi disconnect command")
         if self._radio_state_known and not self._radio_was_enabled:
-            self.runner.run(["nmcli", "radio", "wifi", "off"], check=False)
-        self._assert_management_route()
+            try:
+                self.runner.run(["nmcli", "radio", "wifi", "off"], check=False)
+            except RuntimeError:
+                errors.append("Wi-Fi radio restore command")
+        try:
+            state = self.runner.run(
+                ["nmcli", "-g", "GENERAL.STATE", "device", "show", self.settings.interface]
+            ).stdout.strip()
+            if not state.startswith(("20 ", "30 ")):
+                errors.append("Wi-Fi remains active")
+            if self._radio_state_known and not self._radio_was_enabled and self._radio_enabled():
+                errors.append("Wi-Fi radio remains enabled")
+        except RuntimeError:
+            errors.append("Wi-Fi state check")
+        try:
+            self._assert_management_route()
+        except (ProbeError, RuntimeError):
+            errors.append("management route check")
+        if errors:
+            raise ProbeError("cleanup", ", ".join(errors))
