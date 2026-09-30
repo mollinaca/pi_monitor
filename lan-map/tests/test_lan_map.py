@@ -154,7 +154,7 @@ def test_dashboard_queries_select_historical_snapshot(tmp_path: Path) -> None:
     write_inputs(config, cycle_at)
     run(config, cycle_at + 210)
     run(config, cycle_at + 510)
-    dashboard = json.loads((Path(__file__).parents[2] / "services/grafana/dashboards/lan-map/lan-map.json").read_text())
+    dashboard = json.loads((Path(__file__).parents[2] / "services/grafana/dashboards/network/lan-map.json").read_text())
     graph = next(panel for panel in dashboard["panels"] if panel["type"] == "nodeGraph")
     query_time = str((cycle_at + 240) * 1000)
     with sqlite3.connect(config.database) as db:

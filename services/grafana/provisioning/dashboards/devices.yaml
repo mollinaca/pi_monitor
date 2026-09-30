@@ -1,13 +1,13 @@
 apiVersion: 1
 
 providers:
-  - name: lan-map
+  - name: device-monitoring
     orgId: 1
-    folder: LAN Map
-    folderUid: lan-map-folder
+    folder: Device Monitoring
+    folderUid: device-monitoring
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
     allowUiUpdates: false
     options:
-      path: /var/lib/grafana/dashboards/lan-map
+      path: /var/lib/grafana/dashboards/devices

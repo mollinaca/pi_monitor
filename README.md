@@ -74,9 +74,9 @@ pi_monitor/
 │   │   └── prometheus.yml
 │   └── grafana/
 │       ├── dashboards/
-│       │   ├── gatus/gatus-health.json
-│       │   ├── hardware/pi-hardware.json
-│       │   └── wifi/wifi-quality.json
+│       │   ├── devices/          # Pi、Router、AP、プローブの状態
+│       │   ├── network/          # 到達性、Wi-Fi品質、速度、LAN Map
+│       │   └── energy/           # 手動インポートが生成する利用履歴
 │       └── provisioning/
 ├── ssd-smart-probe/            # ホスト側、日次の外部SSD SMARTプローブ
 ├── wifi-probe/                 # ホスト側Pythonプロジェクト
@@ -191,7 +191,7 @@ node_exporterの`node_textfile_mtime_seconds`を使い、定期プローブがte
 Prometheusの`HomeTextfileStale`または`HomeSmartTextfileStale`アラートが発火します。
 手動実行の`energy-import.prom`は対象外です。
 
-結果はGrafanaの`Network Health`フォルダーにある`Probe Freshness`ダッシュボードと、
+結果はGrafanaの`Device Monitoring`フォルダーにある`Probe Freshness`ダッシュボードと、
 Pi上のPrometheusの`/alerts`で確認できます。現在は通知先を設定していないため、
 アラートが発火してもメールや端末への通知は届きません。これは既存ファイルの更新停止を
 検出する設定です。ファイルが削除された場合や一度も生成されていない場合は検出しません。
@@ -202,7 +202,7 @@ timerのjournalを確認してください。
 
 今後、定期プローブ・監視対象・textfileを追加または改名する場合は、
 `services/prometheus/textfile-freshness.rules.yml`の対象ファイルと期限、
-`services/grafana/dashboards/gatus/probe-freshness.json`の表示対象と期限も合わせて更新してください。
+`services/grafana/dashboards/devices/probe-freshness.json`の表示対象と期限も合わせて更新してください。
 手動実行のデータは、更新期限を定めて監視する必要がある場合にのみ追加します。
 
 Prometheusのポート9090もPi自身のlocalhostだけに公開します。SSHポートフォワードで
@@ -217,11 +217,22 @@ ssh -i ../.ssh/codex-ai_SSHKEY -L 9090:127.0.0.1:9090 root@192.168.100.201
 GrafanaはLAN向けにポート3001で公開します。Prometheusをコード管理されたデータソースとして登録し、
 Wi-Fi品質、Gatus Health、Pi Hardwareのダッシュボードを提供します。ログインには、GrafanaのDBに設定済みの管理者認証情報を使用します。
 
+Grafanaのダッシュボードは用途別に3フォルダーへ配置します。
+
+| フォルダー | ダッシュボード |
+| --- | --- |
+| Energy Usage | Energy Usage（手動インポートで生成） |
+| Device Monitoring | Raspberry Pi Hardware、Router Health、AP Health、Probe Freshness |
+| Network Monitoring | Gatus Health、Wi-Fi Quality、Internet Speed、LAN Map |
+
+新しいダッシュボードを追加する場合は、監視対象の機器・収集処理か、通信・接続状態かで配置先を選びます。
+Energy Usageの生成先`services/grafana/dashboards/energy/`は、手動インポートの出力先と共通です。
+
 ## Pi本体とストレージの監視
 
 PiのCPU使用率、load、メモリ使用率、CPU温度、root filesystemと外部SSDの使用率、microSDのI/O量・I/O圧力は、node_exporterの標準メトリクスで収集します。`raspberry-pi`ジョブの収集間隔は1分です。これはカーネルカウンタを読み取るだけで、収集自体はmicroSDへ書き込みません。
 
-Grafanaの`Pi Hardware`フォルダにある`Raspberry Pi Hardware`ダッシュボードで確認できます。
+Grafanaの`Device Monitoring`フォルダにある`Raspberry Pi Hardware`ダッシュボードで確認できます。
 
 microSDカードには、一般に残寿命や残書込み回数を示す標準的な取得方法がありません。このため、容量、書込み量、I/O待ち、I/O利用率を早期警戒のためのトレンドとして監視します。
 
