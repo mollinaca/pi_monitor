@@ -1,64 +1,166 @@
 {
-  "annotations": { "list": [] },
-  "description": "Shows when scheduled probe textfiles were last updated. This checks file freshness, not whether the most recent probe succeeded.",
+  "annotations": {
+    "list": []
+  },
+  "description": "Shows each scheduled probe file's last Prometheus scrape and last file update in one table.",
   "editable": false,
   "graphTooltip": 1,
   "panels": [
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 0 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
-      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
-      "targets": [ { "expr": "count(ALERTS{alertname=~\"Home(Textfile|SmartTextfile)Stale\",alertstate=\"firing\"}) or vector(0)", "instant": true, "refId": "A" } ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "count(ALERTS{alertname=~\"Home(Textfile|SmartTextfile)Stale\",alertstate=\"firing\"}) or vector(0)",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
       "title": "Stale textfiles",
       "type": "stat"
     },
     {
-      "gridPos": { "h": 7, "w": 18, "x": 6, "y": 0 },
+      "gridPos": {
+        "h": 7,
+        "w": 18,
+        "x": 6,
+        "y": 0
+      },
       "id": 2,
-      "options": { "content": "### Freshness check\n\n- The left panel shows each file's **last update time**. The right panels show the **last node_exporter scrape attempt** and whether it succeeded. If scraping continues while a file's update time stays old, its probe or timer may have stopped.\n- Scheduled AP Web, Router, Wi-Fi, internet speed, and LAN Map files become stale after **24 hours** without an update. The daily SSD SMART file has a **30-hour** limit. The manually run energy import is excluded.\n- A stale file appears here and in Prometheus **Alerts**. No notification receiver is configured. A missing or never-created file is outside this check.\n- When adding a probe or monitored file, update the Prometheus freshness rules, this dashboard, and the README.", "mode": "markdown" },
+      "options": {
+        "content": "### Freshness check\n\n- **Last scrape** is the latest Prometheus sample time for the job that reads each file. **Last updated** is the file's modification time. Different jobs scrape at different intervals; Last scrape is blank when no sample exists in the past 36 hours.\n- If Last scrape advances while Last updated stays old, check the probe or timer. AP Web, Router, Wi-Fi, internet speed, and LAN Map files become stale after **24 hours** without an update; the daily SSD SMART file has a **30-hour** limit.\n- The manually run energy import is excluded. Stale files appear in the count above and in Prometheus **Alerts**. No notification receiver is configured. Missing files are outside this check.\n- When adding a probe or monitored file, update the Prometheus freshness rules, this dashboard, and the README.",
+        "mode": "markdown"
+      },
       "title": "About this dashboard",
       "type": "text"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "unit": "dateTimeAsLocal" }, "overrides": [] },
-      "gridPos": { "h": 15, "w": 16, "x": 0, "y": 7 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsLocal"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
       "id": 3,
-      "options": { "colorMode": "none", "graphMode": "none", "orientation": "vertical", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "value_and_name" },
-      "targets": [ { "expr": "node_textfile_mtime_seconds{job=\"raspberry-pi\",file=~\"/textfile/(ap-web|internet-speed|lan-map|router|ssd-smart|wifi-ap1_24|wifi-ap1_50|wifi-ap2_24|wifi-ap2_50)\\\\.prom\"} * 1000", "instant": true, "legendFormat": "{{file}}", "refId": "A" } ],
-      "title": "File last updated",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "unit": "dateTimeAsLocal" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 7 },
-      "id": 4,
-      "options": { "colorMode": "none", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
-      "targets": [ { "expr": "timestamp(up{job=\"raspberry-pi\"}) * 1000", "instant": true, "refId": "A" } ],
-      "title": "Last scrape attempt",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [ { "options": { "0": { "color": "red", "text": "Failed" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 14 },
-      "id": 5,
-      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
-      "targets": [ { "expr": "up{job=\"raspberry-pi\"}", "instant": true, "refId": "A" } ],
-      "title": "Node exporter scrape",
-      "type": "stat"
+      "options": {
+        "cellHeight": "md",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "expr": "max by (file) (label_replace(max by (job) (max_over_time(timestamp(home_ap_web_probe_success{job=\"ap-web\"})[36h:1m])), \"file\", \"/textfile/ap-web.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_router_probe_success{job=\"router\"})[36h:1m])), \"file\", \"/textfile/router.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_internet_speedtest_probe_success{job=\"internet-speed\"})[36h:1m])), \"file\", \"/textfile/internet-speed.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_ssd_smart_probe_success{job=\"ssd-smart\"})[36h:1m])), \"file\", \"/textfile/ssd-smart.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_lan_map_nodes{job=\"raspberry-pi\"})[36h:1m])), \"file\", \"/textfile/lan-map.prom\", \"job\", \".*\") or label_replace(max by (target) (max_over_time(timestamp(home_wifi_probe_success{job=\"raspberry-pi\"})[36h:1m])), \"file\", \"/textfile/wifi-$1.prom\", \"target\", \"(.*)\")) * 1000",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "expr": "max by (file) (node_textfile_mtime_seconds{job=\"raspberry-pi\",file=~\"/textfile/(ap-web|internet-speed|lan-map|router|ssd-smart|wifi-ap1_24|wifi-ap1_50|wifi-ap2_24|wifi-ap2_50)\\\\.prom\"}) * 1000",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "B"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "file",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true
+            },
+            "indexByName": {
+              "file": 0,
+              "Value #A": 1,
+              "Value #B": 2
+            },
+            "renameByName": {
+              "file": "File",
+              "Value #A": "Last scrape",
+              "Value #B": "Last updated"
+            }
+          }
+        }
+      ],
+      "title": "Probe file times",
+      "type": "table"
     }
   ],
-  "refresh": "5m",
+  "refresh": "1m",
   "schemaVersion": 42,
-  "tags": [ "network", "probe", "freshness" ],
-  "time": { "from": "now-7d", "to": "now" },
+  "tags": [
+    "network",
+    "probe",
+    "freshness"
+  ],
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "browser",
   "title": "Probe Freshness",
   "uid": "probe-freshness",
-  "version": 1
+  "version": 3
 }
