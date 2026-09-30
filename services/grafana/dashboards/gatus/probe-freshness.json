@@ -83,10 +83,17 @@
         "uid": "prometheus"
       },
       "fieldConfig": {
-        "defaults": {
-          "unit": "dateTimeAsLocal"
-        },
-        "overrides": []
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Last Prometheus scrape" },
+            "properties": [ { "id": "unit", "value": "dateTimeAsLocal" } ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Last file updated" },
+            "properties": [ { "id": "unit", "value": "dateTimeAsLocal" } ]
+          }
+        ]
       },
       "gridPos": {
         "h": 14,
@@ -137,8 +144,8 @@
             },
             "renameByName": {
               "file": "File",
-              "Value #A": "Last scrape",
-              "Value #B": "Last updated"
+              "Value #A": "Last Prometheus scrape",
+              "Value #B": "Last file updated"
             }
           }
         }
@@ -162,5 +169,5 @@
   "timezone": "browser",
   "title": "Probe Freshness",
   "uid": "probe-freshness",
-  "version": 3
+  "version": 4
 }
