@@ -5,9 +5,6 @@
 credentials_file = "/mnt/data/pi_monitor/.config/ap-web-probe.toml"
 metrics_directory = "/mnt/data/pi_monitor/data/node-exporter/textfile"
 metrics_filename = "ap-web.prom"
-# This root-only local file maps MAC addresses to user-defined display names.
-# It is intentionally not part of Git.
-device_names_file = "/mnt/data/pi_monitor/.config/device-names.toml"
 # Current client inventory stays on the Pi and is replaced only after a
 # successful read of each AP. The LAN map checks its collection timestamp.
 snapshot_directory = "/mnt/data/pi_monitor/data/ap-web-probe"

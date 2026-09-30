@@ -5,7 +5,7 @@ from pathlib import Path
 
 from prometheus_client.parser import text_string_to_metric_families
 
-from pi_ap_web_probe.cli import Credentials, Settings, Target, band_aggregates, band_for_channel, count_client_records, load_device_names, normalize_client_records, number, parse_wap_payload, radio_entries, write_metrics
+from pi_ap_web_probe.cli import Credentials, Settings, Target, band_aggregates, band_for_channel, count_client_records, normalize_client_records, number, parse_wap_payload, radio_entries, write_metrics
 
 
 def test_number_accepts_plain_numeric_values_only() -> None:
@@ -81,23 +81,12 @@ def test_band_aggregation_uses_bounded_band_labels() -> None:
     }
 
 
-def test_device_names_are_local_only_overrides(tmp_path: Path) -> None:
-    names = tmp_path / "device-names.toml"
-    names.write_text('[[device]]\nmac = "00:11:22:33:44:55"\nname = "Living room TV"\n', encoding="utf-8")
-    names.chmod(0o600)
-    assert load_device_names(names) == {"00:11:22:33:44:55": "Living room TV"}
-
-
-def test_write_metrics_exports_client_inventory_labels_when_enabled(tmp_path: Path, monkeypatch) -> None:
-    names = tmp_path / "device-names.toml"
-    names.write_text('[[device]]\nmac = "00:11:22:33:44:55"\nname = "Living room TV"\n', encoding="utf-8")
-    names.chmod(0o600)
+def test_write_metrics_keeps_client_inventory_out_of_prometheus(tmp_path: Path, monkeypatch) -> None:
     settings = Settings(
         credentials_file=tmp_path / "credentials.toml",
         metrics_directory=tmp_path,
         metrics_filename="ap-web.prom",
         targets=(Target("ap1", "192.168.100.246", False, 45),),
-        device_names_file=names,
         snapshot_directory=tmp_path / "snapshots",
     )
 
@@ -107,7 +96,10 @@ def test_write_metrics_exports_client_inventory_labels_when_enabled(tmp_path: Pa
     monkeypatch.setattr("pi_ap_web_probe.cli.collect_target", collect)
     output = write_metrics(settings, Credentials("user", "password"))
     contents = output.read_text(encoding="utf-8")
-    assert 'home_ap_web_client_info{address="192.168.100.246",ap="ap1",band="5ghz",device_name="Living room TV",hostname="tv",mac="00:11:22:33:44:55",ssid="home"} 1.0' in contents
+    assert "home_ap_web_associated_clients" in contents
+    assert "home_ap_web_client_info" not in contents
+    assert "00:11:22:33:44:55" not in contents
+    assert "tv" not in contents
     snapshot = settings.snapshot_directory / "ap1.json"
     assert snapshot.stat().st_mode & 0o777 == 0o600
     assert json.loads(snapshot.read_text(encoding="utf-8"))["clients"][0]["mac"] == "00:11:22:33:44:55"

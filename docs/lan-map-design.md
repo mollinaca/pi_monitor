@@ -15,7 +15,7 @@
 | --- | --- | --- |
 | AP Web probe | APごとの接続端末MAC、ホスト名、SSID、チャンネル等を取得。現在はPrometheusの端末情報ラベルに出力 | APとWi-Fi端末の接続、および帯域 |
 | Router probe | DHCP、ARP、スイッチMAC表の生応答を `data/router-probe/latest.json` に保存 | MACとRouterポートの対応、IP・候補名の補足 |
-| `device-names.toml` | Pi上のroot専用MAC→表示名対応表 | 人が認識できる端末名 |
+| `device-names.toml` | Pi上のroot専用MAC→表示名対応表（ひな形は`lan-map/config/device-names.example.toml`） | 人が認識できる端末名 |
 | Pi自身 | `eth0` のMACを取得可能 | Piの有線接続の照合 |
 
 実測でPiの `eth0` MACはRouterのポート8に現れる。AP接続端末の多くはポート2または5に現れるが、AP1/AP2自身の管理MACまたは配線情報でポート対応を確定する必要がある。Windows PCは有線側MACを端末名対応表に登録して照合する。MACが見えない周期は線を推測しない。

@@ -1,5 +1,5 @@
 # Copy to /mnt/data/pi_monitor/.config/device-names.toml on the Pi, set mode 0600,
-# then add one [[device]] block per personally named device.  Never commit the
+# then add one [[device]] block per personally named device. Never commit the
 # real file: MAC addresses and device names are private inventory data.
 
 [[device]]

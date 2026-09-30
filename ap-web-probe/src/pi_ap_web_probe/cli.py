@@ -16,7 +16,7 @@ from urllib.parse import urlencode
 from urllib.request import HTTPCookieProcessor, HTTPSHandler, Request, build_opener
 
 import json5
-from prometheus_client import CollectorRegistry, Gauge, Info, write_to_textfile
+from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
@@ -44,7 +44,6 @@ class Settings:
     metrics_directory: Path
     metrics_filename: str
     targets: tuple[Target, ...]
-    device_names_file: Path | None = None
     snapshot_directory: Path | None = None
 
     @property
@@ -86,9 +85,6 @@ def load_settings(path: Path) -> Settings:
             raise ValueError("target verify_tls and timeout_seconds are required")
         identifiers.add(identifier)
         configured.append(Target(identifier, address, verify_tls, timeout))
-    device_names = probe.get("device_names_file")
-    if device_names is not None and (not isinstance(device_names, str) or not device_names):
-        raise ValueError("device_names_file must be a non-empty path when configured")
     snapshot_directory = probe.get("snapshot_directory")
     if snapshot_directory is not None and (not isinstance(snapshot_directory, str) or not snapshot_directory):
         raise ValueError("snapshot_directory must be a non-empty path when configured")
@@ -97,7 +93,6 @@ def load_settings(path: Path) -> Settings:
         Path(probe["metrics_directory"]),
         filename,
         tuple(configured),
-        Path(device_names) if device_names is not None else None,
         Path(snapshot_directory) if snapshot_directory is not None else None,
     )
 
@@ -115,33 +110,6 @@ def load_credentials(path: Path) -> Credentials:
     if not isinstance(username, str) or not username or not isinstance(password, str) or not password:
         raise ValueError("credentials file must provide non-empty username and password")
     return Credentials(username, password)
-
-
-def load_device_names(path: Path | None) -> dict[str, str]:
-    """Load local-only MAC-to-display-name overrides, if configured."""
-    if path is None or not path.exists():
-        return {}
-    if path.stat().st_mode & 0o077:
-        raise ValueError(f"device names file must not be group/world readable: {path}")
-    with path.open("rb") as handle:
-        data = tomllib.load(handle)
-    entries = data.get("device", [])
-    if not isinstance(entries, list):
-        raise ValueError("device names file must contain [[device]] entries")
-    names: dict[str, str] = {}
-    for entry in entries:
-        if not isinstance(entry, dict):
-            raise ValueError("each device entry must be a table")
-        mac, name = entry.get("mac"), entry.get("name")
-        if not isinstance(mac, str) or _CLIENT_MAC.fullmatch(mac.strip()) is None:
-            raise ValueError("device entry mac must be a MAC address")
-        if not isinstance(name, str) or not name.strip():
-            raise ValueError("device entry name must be non-empty")
-        normalized_mac = mac.strip().lower()
-        if normalized_mac in names:
-            raise ValueError("device names file contains duplicate MAC addresses")
-        names[normalized_mac] = name.strip()
-    return names
 
 
 def make_cookie(name: str, value: str, domain: str) -> Cookie:
@@ -435,13 +403,6 @@ def write_metrics(settings: Settings, credentials: Credentials, failures: list[s
         band_labels,
         registry=registry,
     )
-    client_info = Info(
-        "home_ap_web_client",
-        "Current Wi-Fi client association; MAC and name are private home-inventory labels",
-        labels + ("mac",),
-        registry=registry,
-    )
-    device_names = load_device_names(settings.device_names_file)
     for target in settings.targets:
         values = (target.identifier, target.address)
         attempt.labels(*values).set(time.time())
@@ -452,17 +413,6 @@ def write_metrics(settings: Settings, credentials: Credentials, failures: list[s
             success.labels(*values).set(1)
             duration.labels(*values).set(elapsed)
             clients.labels(*values).set(count_client_records(associations))
-            for record in associations["clients"]:
-                mac = record["mac"]
-                hostname = record.get("hostname") if isinstance(record.get("hostname"), str) else ""
-                client_info.labels(*values, mac).info(
-                    {
-                        "device_name": device_names.get(mac, hostname or mac),
-                        "hostname": hostname,
-                        "ssid": record.get("ssid") if isinstance(record.get("ssid"), str) else "",
-                        "band": band_for_channel(record.get("channel")),
-                    }
-                )
             for band, aggregate in band_aggregates(associations["clients"]).items():
                 band_clients.labels(*values, band).set(aggregate["clients"])
                 if aggregate["data_rate_samples"]:

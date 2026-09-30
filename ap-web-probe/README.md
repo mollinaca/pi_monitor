@@ -18,15 +18,10 @@ to the Pi when practical.
 
 The probe logs in through a headless browser, reads the WAP150 associations
 page's already-evaluated `allData.clients`, logs out, and atomically writes
-`ap-web.prom`. Aggregate metrics are public to the local monitoring stack.
-The current client-inventory metric intentionally includes MAC addresses,
-hostnames, SSIDs, AP, and band as Prometheus labels so that the private Grafana
-dashboard can show the live topology. These values are runtime-only Pi data:
-do not add a real device-name mapping file or any client identifier to Git.
-
-Optional root-only device-name overrides live at
-`/mnt/data/pi_monitor/.config/device-names.toml`; start from
-`config/device-names.example.toml` and use mode `0600`.
+`ap-web.prom`. Only aggregate metrics are exported. Per-client details are
+written to root-only AP snapshots for LAN Map; they are not Prometheus labels.
+The device-name mapping used by LAN Map lives at
+`/mnt/data/pi_monitor/.config/device-names.toml` and must not be committed.
 
 Current exported metrics are AP-wide associated-client count, and the
 associated-client count plus average UI-reported link data rate (Mbps) grouped
