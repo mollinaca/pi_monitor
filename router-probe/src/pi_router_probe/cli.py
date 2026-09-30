@@ -19,6 +19,7 @@ ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 PROMPT = re.compile(r"(?:^|\r?\n)[>#]\s*$")
 MORE = re.compile(r"(?:--[Mm]ore--|Press any key)")
 MAC = re.compile(r"\b(?:[0-9a-f]{2}:){5}[0-9a-f]{2}\b", re.IGNORECASE)
+CLI_ERROR = re.compile(r"^\s*(?:Error:|wrong command:)", re.IGNORECASE | re.MULTILINE)
 NUMBER = r"([0-9][0-9,]*)"
 
 
@@ -226,6 +227,9 @@ def write_metrics(settings: Settings, password: str, failures: list[str] | None 
     started = time.monotonic()
     try:
         responses, elapsed = collect(settings, password)
+        for command, response in responses.items():
+            if CLI_ERROR.search(response):
+                raise ValueError(f"router returned an error for {command}")
         environment = parse_environment(responses["show environment"])
         if not {"cpu_percent", "memory_percent", "uptime_seconds"} <= environment.keys():
             raise ValueError("required router resource fields are missing")

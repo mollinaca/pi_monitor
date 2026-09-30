@@ -57,6 +57,30 @@ def test_failed_collection_does_not_emit_zero_resource_values(tmp_path: Path, mo
     assert "stage=collect" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize("failed_command", ["show status dhcp", "show arp", "show status switching-hub macaddress"])
+def test_router_error_response_leaves_inventory_metrics_missing(tmp_path: Path, monkeypatch, failed_command: str) -> None:
+    from pi_router_probe import cli
+
+    settings = Settings(tmp_path / "password", tmp_path, "router.prom", tmp_path / "snapshot", "router", "user", 22, 30, ("lan1",))
+    responses = {
+        "show environment": "CPU: 10%\nMemory: 20%\nElapsed time from boot: 1days 01:02:03",
+        "show status dhcp": "",
+        "show arp": "",
+        "show status switching-hub macaddress": "",
+        "show status lan1": "Transmitted: 10 packets (100 octets)\nReceived: 20 packets (200 octets)",
+    }
+    responses[failed_command] = "Error: Invalid command name"
+    monkeypatch.setattr(cli, "collect", lambda *_args: (responses, 0.1))
+    failures: list[str] = []
+
+    output = write_metrics(settings, "password", failures)
+    contents = output.read_text(encoding="utf-8")
+    assert failures == ["ValueError"]
+    assert "home_router_probe_success 0.0" in contents
+    assert "home_router_table_entries{" not in contents
+    assert not (settings.snapshot_directory / "latest.json").exists()
+
+
 def test_main_returns_one_when_router_is_unavailable(tmp_path: Path, monkeypatch) -> None:
     from pi_router_probe import cli
 
