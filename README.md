@@ -195,6 +195,9 @@ Prometheusの`HomeTextfileStale`または`HomeSmartTextfileStale`アラートが
 Pi上のPrometheusの`/alerts`で確認できます。現在は通知先を設定していないため、
 アラートが発火してもメールや端末への通知は届きません。これは既存ファイルの更新停止を
 検出する設定です。ファイルが削除された場合や一度も生成されていない場合は検出しません。
+ダッシュボードには、各ファイルの最終更新時刻とnode_exporterの最終スクレイプ時刻・成否を
+並べて表示します。スクレイプが続いているのにファイルの時刻が古い場合、対応する
+プローブやtimerのjournalを確認してください。
 
 今後、定期プローブ・監視対象・textfileを追加または改名する場合は、
 `services/prometheus/textfile-freshness.rules.yml`の対象ファイルと期限、

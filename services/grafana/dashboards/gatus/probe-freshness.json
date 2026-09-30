@@ -17,28 +17,38 @@
     {
       "gridPos": { "h": 7, "w": 18, "x": 6, "y": 0 },
       "id": 2,
-      "options": { "content": "### Freshness check\n\n- Scheduled AP Web, Router, Wi-Fi, internet speed, and LAN Map files become stale after **24 hours** without an update. The daily SSD SMART file has a **30-hour** limit.\n- The manually run energy import is excluded. The panels below show each existing file's age.\n- A stale file appears here and in Prometheus **Alerts**. No notification receiver is configured. A missing or never-created file is outside this check.\n- When adding a probe or monitored file, update the Prometheus freshness rules, this dashboard, and the README.", "mode": "markdown" },
+      "options": { "content": "### Freshness check\n\n- The left panel shows each file's **last update time**. The right panels show the **last node_exporter scrape attempt** and whether it succeeded. If scraping continues while a file's update time stays old, its probe or timer may have stopped.\n- Scheduled AP Web, Router, Wi-Fi, internet speed, and LAN Map files become stale after **24 hours** without an update. The daily SSD SMART file has a **30-hour** limit. The manually run energy import is excluded.\n- A stale file appears here and in Prometheus **Alerts**. No notification receiver is configured. A missing or never-created file is outside this check.\n- When adding a probe or monitored file, update the Prometheus freshness rules, this dashboard, and the README.", "mode": "markdown" },
       "title": "About this dashboard",
       "type": "text"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 1, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 24 } ] }, "unit": "h" }, "overrides": [] },
-      "gridPos": { "h": 13, "w": 16, "x": 0, "y": 7 },
+      "fieldConfig": { "defaults": { "unit": "dateTimeAsLocal" }, "overrides": [] },
+      "gridPos": { "h": 15, "w": 16, "x": 0, "y": 7 },
       "id": 3,
-      "options": { "displayMode": "gradient", "minVizHeight": 16, "namePlacement": "left", "orientation": "horizontal", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showUnfilled": true, "valueMode": "color" },
-      "targets": [ { "expr": "(time() - node_textfile_mtime_seconds{job=\"raspberry-pi\",file=~\"/textfile/(ap-web|internet-speed|lan-map|router|wifi-ap1_24|wifi-ap1_50|wifi-ap2_24|wifi-ap2_50)\\\\.prom\"}) / 3600", "instant": true, "legendFormat": "{{file}}", "refId": "A" } ],
-      "title": "Hours since last update (24h limit)",
-      "type": "bargauge"
+      "options": { "colorMode": "none", "graphMode": "none", "orientation": "vertical", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "textMode": "value_and_name" },
+      "targets": [ { "expr": "node_textfile_mtime_seconds{job=\"raspberry-pi\",file=~\"/textfile/(ap-web|internet-speed|lan-map|router|ssd-smart|wifi-ap1_24|wifi-ap1_50|wifi-ap2_24|wifi-ap2_50)\\\\.prom\"} * 1000", "instant": true, "legendFormat": "{{file}}", "refId": "A" } ],
+      "title": "File last updated",
+      "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "decimals": 1, "min": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 30 } ] }, "unit": "h" }, "overrides": [] },
-      "gridPos": { "h": 13, "w": 8, "x": 16, "y": 7 },
+      "fieldConfig": { "defaults": { "unit": "dateTimeAsLocal" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 7 },
       "id": 4,
+      "options": { "colorMode": "none", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
+      "targets": [ { "expr": "timestamp(up{job=\"raspberry-pi\"}) * 1000", "instant": true, "refId": "A" } ],
+      "title": "Last scrape attempt",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [ { "options": { "0": { "color": "red", "text": "Failed" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] }, "unit": "none" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 14 },
+      "id": 5,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
-      "targets": [ { "expr": "(time() - node_textfile_mtime_seconds{job=\"raspberry-pi\",file=\"/textfile/ssd-smart.prom\"}) / 3600", "instant": true, "refId": "A" } ],
-      "title": "SMART update age (30h limit)",
+      "targets": [ { "expr": "up{job=\"raspberry-pi\"}", "instant": true, "refId": "A" } ],
+      "title": "Node exporter scrape",
       "type": "stat"
     }
   ],
