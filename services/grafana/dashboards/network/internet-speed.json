@@ -26,21 +26,21 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "connectNullValues": true, "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "Mbps" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto", "spanNulls": false }, "unit": "Mbps" }, "overrides": [] },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 }, "id": 3,
       "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "last_over_time(home_internet_speedtest_download_bytes_per_second{job=\"internet-speed\"}[35m]) * 8 / 1000000", "legendFormat": "download", "refId": "A" }, { "expr": "last_over_time(home_internet_speedtest_upload_bytes_per_second{job=\"internet-speed\"}[35m]) * 8 / 1000000", "legendFormat": "upload", "refId": "B" } ], "title": "Internet throughput", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "connectNullValues": true, "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "ms" }, "overrides": [] },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto", "spanNulls": false }, "unit": "ms" }, "overrides": [] },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 24 }, "id": 4,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "last_over_time(home_internet_speedtest_ping_latency_milliseconds{job=\"internet-speed\"}[35m])", "legendFormat": "idle latency", "refId": "A" }, { "expr": "last_over_time(home_internet_speedtest_ping_jitter_milliseconds{job=\"internet-speed\"}[35m])", "legendFormat": "jitter", "refId": "B" } ], "title": "Idle latency and jitter", "type": "timeseries"
     },
     {
       "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 }, "id": 6,
-      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Measurement conditions\n\n- Measurements use the **Ookla Speedtest CLI** from the Raspberry Pi's wired `eth0` interface.\n- The test server is fixed to **IPA CyberLab 400G, Tokyo, Japan** (server ID `48463`).\n- A full test runs **every 30 minutes** and uses substantial bandwidth. The plotted line joins successful tests; check **Latest test status** for the most recent attempt. This measures the wired Pi's internet connection, not Wi-Fi throughput.", "mode": "markdown" }, "pluginVersion": "13.2.2", "title": "About this measurement", "type": "text"
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Measurement conditions\n\n- Measurements use the **Ookla Speedtest CLI** from the Raspberry Pi's wired `eth0` interface.\n- The test server is fixed to **IPA CyberLab 400G, Tokyo, Japan** (server ID `48463`).\n- A full test runs **every 30 minutes** and uses substantial bandwidth. Gaps in the line indicate missing measurements; check **Latest test status** for the most recent attempt. This measures the wired Pi's internet connection, not Wi-Fi throughput.", "mode": "markdown" }, "pluginVersion": "13.2.2", "title": "About this measurement", "type": "text"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },

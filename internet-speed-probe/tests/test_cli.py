@@ -80,3 +80,12 @@ def test_main_returns_one_for_incomplete_result(tmp_path: Path, monkeypatch, cap
     assert cli.main(["--config", "unused"]) == 1
     assert "error=invalid_result" in capsys.readouterr().err
     assert samples(tmp_path / "internet-speed.prom")["home_internet_speedtest_probe_success"] == 0
+
+
+def test_main_reports_speedtest_error_detail(tmp_path: Path, monkeypatch, capsys) -> None:
+    from pi_internet_speed_probe import cli
+
+    monkeypatch.setattr(cli, "load_settings", lambda _path: settings(tmp_path))
+    monkeypatch.setattr(cli, "run_speedtest", lambda _settings: (2, None, "server unavailable\ntry again", 1.0))
+    assert cli.main(["--config", "unused"]) == 1
+    assert "error=command_exit_2 detail=server unavailable try again" in capsys.readouterr().err

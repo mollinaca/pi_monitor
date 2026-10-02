@@ -195,7 +195,8 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if exit_status != 0 or not valid_result(payload):
         reason = "timeout" if exit_status == 124 else ("invalid_result" if exit_status == 0 else f"command_exit_{exit_status}")
-        print(f"internet-speed stage=collect error={reason}", file=sys.stderr)
+        detail = " ".join(error.split())[:500]
+        print(f"internet-speed stage=collect error={reason}" + (f" detail={detail}" if detail else ""), file=sys.stderr)
         return 1
     print(f"Internet speed probe | server={settings.server_id} | metrics={destination}")
     return 0
