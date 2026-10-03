@@ -21,7 +21,7 @@
     {
       "gridPos": { "h": 7, "w": 16, "x": 8, "y": 0 },
       "id": 24,
-      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### About this dashboard\n\n- Host metrics are collected from the Raspberry Pi by node_exporter every **one minute**.\n- It covers CPU, memory, temperature, filesystems, and I/O for the microSD and external SSD.\n- External SSD SMART attributes are collected separately, once per day. Storage capacity and I/O are trend indicators, not remaining-life predictions.", "mode": "markdown" },
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### About this dashboard\n\n- Host metrics are collected from the Raspberry Pi by node_exporter every **one minute**.\n- It covers CPU, memory, temperature, filesystems, and I/O for the microSD and external SSD.\n- External SSD SMART attributes are collected separately, once per day. The SMART probe currently uses the fixed device path `/dev/sda`; check that it still points to the external SSD if device names change. Storage capacity and I/O are trend indicators, not remaining-life predictions.", "mode": "markdown" },
       "pluginVersion": "13.2.2",
       "title": "About this dashboard",
       "type": "text"
