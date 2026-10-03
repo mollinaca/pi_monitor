@@ -41,7 +41,7 @@
     },
     {
       "gridPos": { "h": 7, "w": 18, "x": 6, "y": 0 }, "id": 10,
-      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Data source\n\n- Cisco AP's rendered association page, read using a **Read Only** account.\n- Shows aggregate AP and Wi-Fi-band statistics only; client identities are not exported.\n- The collection timer is currently **disabled**, so values update only after a manual probe run.", "mode": "markdown" },
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Data source\n\n- Cisco AP's rendered association page is read using a **Read Only** account every five minutes.\n- This dashboard shows aggregate AP and Wi-Fi-band statistics only; client identities are not exported to Prometheus.\n- A failed AP read is recorded as a failed attempt. Its current client list is then unavailable to LAN Map for that cycle.", "mode": "markdown" },
       "pluginVersion": "13.2.2", "title": "About this dashboard", "type": "text"
     },
     {

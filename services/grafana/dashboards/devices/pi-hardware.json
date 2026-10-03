@@ -149,7 +149,7 @@
     {
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 54 },
       "id": 9,
-      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Storage lifetime notes\n\n- **microSD:** consumer SD cards generally do not expose a standardized remaining-life or write-endurance counter. This dashboard therefore tracks root filesystem capacity, write/read trend, and I/O pressure as early-warning signals.\n- **External SSD:** SMART is available and will be added as a separate, low-frequency probe. SMART results and all Prometheus data are stored on `/mnt/data`, not on the microSD.\n- node_exporter reads kernel counters; its one-minute scrape does not itself write to the microSD.", "mode": "markdown" },
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Storage lifetime notes\n\n- **microSD:** consumer SD cards generally do not expose a standardized remaining-life or write-endurance counter. This dashboard therefore tracks root filesystem capacity, write/read trend, and I/O pressure as early-warning signals.\n- **External SSD:** a separate probe reads SMART attributes once per day. SMART results and all Prometheus data are stored on `/mnt/data`, not on the microSD.\n- node_exporter reads kernel counters; its one-minute scrape does not itself write to the microSD.", "mode": "markdown" },
       "pluginVersion": "13.2.2",
       "title": "About storage monitoring",
       "type": "text"
