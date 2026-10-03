@@ -2,7 +2,7 @@
 Description=Run the fixed-server internet speed metrics probe every 30 minutes
 
 [Timer]
-OnCalendar=*-*-* *:00/30:00
+OnCalendar=*-*-* *:12/30:00
 Persistent=true
 AccuracySec=30s
 Unit=pi-internet-speed-probe.service
