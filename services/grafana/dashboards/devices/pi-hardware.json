@@ -14,7 +14,7 @@
       "gridPos": { "h": 7, "w": 8, "x": 0, "y": 0 },
       "id": 23,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false } },
-      "targets": [ { "expr": "timestamp(up{job=\"raspberry-pi\"}) * 1000", "refId": "A" } ],
+      "targets": [ { "expr": "timestamp(up{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}) * 1000", "refId": "A" } ],
       "title": "Last scrape attempt",
       "type": "stat"
     },
@@ -32,7 +32,7 @@
       "gridPos": { "h": 7, "w": 6, "x": 0, "y": 7 },
       "id": 1,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
-      "targets": [ { "expr": "100 * (1 - avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",mode=\"idle\"}[5m])))", "legendFormat": "CPU", "refId": "A" } ],
+      "targets": [ { "expr": "100 * (1 - avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",mode=\"idle\"}[5m])))", "legendFormat": "CPU", "refId": "A" } ],
       "title": "CPU utilization",
       "type": "stat"
     },
@@ -42,7 +42,7 @@
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
       "id": 11,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "100 * avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",mode!~\"guest|guest_nice\"}[5m]))", "legendFormat": "{{mode}}", "refId": "A" } ],
+      "targets": [ { "expr": "100 * avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",mode!~\"guest|guest_nice\"}[5m]))", "legendFormat": "{{mode}}", "refId": "A" } ],
       "title": "CPU time breakdown",
       "type": "timeseries"
     },
@@ -52,7 +52,7 @@
       "gridPos": { "h": 8, "w": 16, "x": 0, "y": 22 },
       "id": 2,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "node_memory_MemFree_bytes{job=\"raspberry-pi\"}", "legendFormat": "Free", "refId": "A" }, { "expr": "node_memory_Buffers_bytes{job=\"raspberry-pi\"}", "legendFormat": "Buffers", "refId": "B" }, { "expr": "node_memory_Cached_bytes{job=\"raspberry-pi\"}", "legendFormat": "Cached", "refId": "C" }, { "expr": "node_memory_SReclaimable_bytes{job=\"raspberry-pi\"}", "legendFormat": "Reclaimable slab", "refId": "D" }, { "expr": "node_memory_MemTotal_bytes{job=\"raspberry-pi\"} - node_memory_MemFree_bytes{job=\"raspberry-pi\"} - node_memory_Buffers_bytes{job=\"raspberry-pi\"} - node_memory_Cached_bytes{job=\"raspberry-pi\"} - node_memory_SReclaimable_bytes{job=\"raspberry-pi\"}", "legendFormat": "Used (non-reclaimable)", "refId": "E" }, { "expr": "node_memory_MemTotal_bytes{job=\"raspberry-pi\"}", "legendFormat": "Total", "refId": "F" } ],
+      "targets": [ { "expr": "node_memory_MemFree_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "Free", "refId": "A" }, { "expr": "node_memory_Buffers_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "Buffers", "refId": "B" }, { "expr": "node_memory_Cached_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "Cached", "refId": "C" }, { "expr": "node_memory_SReclaimable_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "Reclaimable slab", "refId": "D" }, { "expr": "node_memory_MemTotal_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"} - node_memory_MemFree_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"} - node_memory_Buffers_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"} - node_memory_Cached_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"} - node_memory_SReclaimable_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "Used (non-reclaimable)", "refId": "E" }, { "expr": "node_memory_MemTotal_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "Total", "refId": "F" } ],
       "title": "Physical memory breakdown",
       "type": "timeseries"
     },
@@ -62,7 +62,7 @@
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 22 },
       "id": 10,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "node_memory_SwapFree_bytes{job=\"raspberry-pi\"}", "legendFormat": "Swap free", "refId": "A" }, { "expr": "node_memory_SwapTotal_bytes{job=\"raspberry-pi\"} - node_memory_SwapFree_bytes{job=\"raspberry-pi\"}", "legendFormat": "Swap used", "refId": "B" }, { "expr": "node_memory_SwapTotal_bytes{job=\"raspberry-pi\"}", "legendFormat": "Swap total", "refId": "C" } ],
+      "targets": [ { "expr": "node_memory_SwapFree_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "Swap free", "refId": "A" }, { "expr": "node_memory_SwapTotal_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"} - node_memory_SwapFree_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "Swap used", "refId": "B" }, { "expr": "node_memory_SwapTotal_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "Swap total", "refId": "C" } ],
       "title": "Swap breakdown",
       "type": "timeseries"
     },
@@ -72,7 +72,7 @@
       "gridPos": { "h": 7, "w": 6, "x": 6, "y": 7 },
       "id": 3,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
-      "targets": [ { "expr": "node_thermal_zone_temp{job=\"raspberry-pi\",type=\"cpu-thermal\"}", "legendFormat": "CPU", "refId": "A" } ],
+      "targets": [ { "expr": "node_thermal_zone_temp{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",type=\"cpu-thermal\"}", "legendFormat": "CPU", "refId": "A" } ],
       "title": "CPU temperature",
       "type": "stat"
     },
@@ -82,7 +82,7 @@
       "gridPos": { "h": 7, "w": 12, "x": 12, "y": 7 },
       "id": 4,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "node_load1{job=\"raspberry-pi\"}", "legendFormat": "load 1m", "refId": "A" }, { "expr": "node_load5{job=\"raspberry-pi\"}", "legendFormat": "load 5m", "refId": "B" }, { "expr": "node_load15{job=\"raspberry-pi\"}", "legendFormat": "load 15m", "refId": "C" } ],
+      "targets": [ { "expr": "node_load1{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "load 1m", "refId": "A" }, { "expr": "node_load5{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "load 5m", "refId": "B" }, { "expr": "node_load15{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\"}", "legendFormat": "load 15m", "refId": "C" } ],
       "title": "System load",
       "type": "timeseries"
     },
@@ -92,7 +92,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 38 },
       "id": 5,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}", "legendFormat": "used (of 125.3 GB)", "refId": "A" } ],
+      "targets": [ { "expr": "node_filesystem_size_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}", "legendFormat": "used (of 125.3 GB)", "refId": "A" } ],
       "title": "microSD root filesystem usage",
       "type": "timeseries"
     },
@@ -102,7 +102,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 38 },
       "id": 6,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "node_filesystem_size_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{job=\"raspberry-pi\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"}", "legendFormat": "used (of 1.007 TB)", "refId": "A" } ],
+      "targets": [ { "expr": "node_filesystem_size_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"} - node_filesystem_avail_bytes{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",mountpoint=\"/mnt/data\",fstype!~\"tmpfs|overlay\"}", "legendFormat": "used (of 1.007 TB)", "refId": "A" } ],
       "title": "External SSD filesystem usage",
       "type": "timeseries"
     },
@@ -112,7 +112,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 46 },
       "id": 7,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "rate(node_disk_written_bytes_total{job=\"raspberry-pi\",device=\"mmcblk0\"}[5m])", "legendFormat": "write", "refId": "A" }, { "expr": "rate(node_disk_read_bytes_total{job=\"raspberry-pi\",device=\"mmcblk0\"}[5m])", "legendFormat": "read", "refId": "B" } ],
+      "targets": [ { "expr": "rate(node_disk_written_bytes_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",device=\"mmcblk0\"}[5m])", "legendFormat": "write", "refId": "A" }, { "expr": "rate(node_disk_read_bytes_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",device=\"mmcblk0\"}[5m])", "legendFormat": "read", "refId": "B" } ],
       "title": "microSD I/O throughput",
       "type": "timeseries"
     },
@@ -122,7 +122,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 46 },
       "id": 8,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "100 * rate(node_disk_io_time_seconds_total{job=\"raspberry-pi\",device=\"mmcblk0\"}[5m])", "legendFormat": "microSD busy", "refId": "A" }, { "expr": "100 * avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",mode=\"iowait\"}[5m]))", "legendFormat": "CPU iowait", "refId": "B" } ],
+      "targets": [ { "expr": "100 * rate(node_disk_io_time_seconds_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",device=\"mmcblk0\"}[5m])", "legendFormat": "microSD busy", "refId": "A" }, { "expr": "100 * avg without (cpu) (rate(node_cpu_seconds_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",mode=\"iowait\"}[5m]))", "legendFormat": "CPU iowait", "refId": "B" } ],
       "title": "microSD I/O pressure",
       "type": "timeseries"
     },
@@ -132,7 +132,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 54 },
       "id": 21,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "rate(node_disk_written_bytes_total{job=\"raspberry-pi\",device=\"sda\"}[5m])", "legendFormat": "write", "refId": "A" }, { "expr": "rate(node_disk_read_bytes_total{job=\"raspberry-pi\",device=\"sda\"}[5m])", "legendFormat": "read", "refId": "B" } ],
+      "targets": [ { "expr": "rate(node_disk_written_bytes_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",device=\"sda\"}[5m])", "legendFormat": "write", "refId": "A" }, { "expr": "rate(node_disk_read_bytes_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",device=\"sda\"}[5m])", "legendFormat": "read", "refId": "B" } ],
       "title": "External SSD I/O throughput",
       "type": "timeseries"
     },
@@ -142,7 +142,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 54 },
       "id": 22,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "100 * rate(node_disk_io_time_seconds_total{job=\"raspberry-pi\",device=\"sda\"}[5m])", "legendFormat": "external SSD busy", "refId": "A" } ],
+      "targets": [ { "expr": "100 * rate(node_disk_io_time_seconds_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",device=\"sda\"}[5m])", "legendFormat": "external SSD busy", "refId": "A" } ],
       "title": "External SSD I/O pressure",
       "type": "timeseries"
     },
@@ -263,5 +263,5 @@
   "timezone": "browser",
   "title": "Raspberry Pi Hardware",
   "uid": "raspberry-pi-hardware",
-  "version": 1
+  "version": 2
 }
