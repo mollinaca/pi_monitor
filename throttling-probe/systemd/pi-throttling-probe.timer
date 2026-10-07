@@ -1,0 +1,11 @@
+[Unit]
+Description=Collect Raspberry Pi voltage and throttling state every minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Persistent=true
+AccuracySec=10s
+Unit=pi-throttling-probe.service
+
+[Install]
+WantedBy=timers.target

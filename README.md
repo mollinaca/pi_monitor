@@ -179,16 +179,27 @@ http://192.168.100.201:8080/
 http://192.168.100.201:3001/
 ```
 
-node_exporterのポート9100はPi自身のlocalhostだけに公開します。Wi-Fi probeが生成した
-`data/node-exporter/textfile/*.prom` とPiのCPU、メモリ、ディスクなどのホスト指標を公開し、
-PrometheusからはCompose内部ネットワーク経由で収集します。
+node_exporterはPiのホストネットワークで動作し、Dockerブリッジのゲートウェイ
+`172.17.0.1:9100`で待ち受けます。Wi-Fi probeなどが生成した
+`data/node-exporter/textfile/*.prom` とPiのCPU、メモリ、ディスク、ネットワークなどの
+ホスト指標を公開し、Prometheusは`host.docker.internal:9100`から収集します。
+
+### 電圧低下・性能制限
+
+Pi上の`pi-throttling-probe.timer`が1分ごとに`vcgencmd get_throttled`を実行し、
+`data/node-exporter/textfile/pi-throttling.prom`へ出力します。導入はPiで
+`scripts/install-throttling-probe.sh`を実行します。初回はサービスの終了状態と
+`journalctl -u pi-throttling-probe.service -n 50 --no-pager`を確認します。
+`Raspberry Pi Hardware`には「現在」と「起動後に一度でも発生」の2つのグラフがあります。
+後者はファームウェアの履歴ビットを表示するため、状態が解消しても再起動まで1のままです。
+1分未満の一時的な事象は現在のグラフには残らない場合があります。
 
 ### 定期プローブのtextfile鮮度
 
 node_exporterの`node_textfile_mtime_seconds`を使い、定期プローブがtextfileを更新しなくなった場合を検出します。
 `ap-web.prom`、`router.prom`、`internet-speed.prom`、`lan-map.prom`、4つの`wifi-*.prom`は
-最終更新から24時間、日次の`ssd-smart.prom`は実行時刻のずれを見込んで30時間を超えると
-Prometheusの`HomeTextfileStale`または`HomeSmartTextfileStale`アラートが発火します。
+最終更新から24時間、日次の`ssd-smart.prom`は実行時刻のずれを見込んで30時間、
+毎分の`pi-throttling.prom`は10分を超えると、それぞれの鮮度アラートが発火します。
 手動実行の`energy-import.prom`は対象外です。
 
 結果はGrafanaの`Device Monitoring`フォルダーにある`Probe Freshness`ダッシュボードと、

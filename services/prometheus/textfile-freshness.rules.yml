@@ -15,3 +15,18 @@ groups:
         annotations:
           summary: "SMART textfile has not been updated for 30 hours"
           description: "Check pi-ssd-smart-probe.timer and its service journal on the Pi. No notification receiver is configured."
+      - alert: HomePiThrottlingTextfileStale
+        expr: time() - node_textfile_mtime_seconds{job="raspberry-pi",file="/textfile/pi-throttling.prom"} > 600
+        labels:
+          severity: warning
+        annotations:
+          summary: "Raspberry Pi throttling textfile has not been updated for 10 minutes"
+          description: "Check pi-throttling-probe.timer and its service journal on the Pi. No notification receiver is configured."
+      - alert: HomePiThrottlingProbeFailed
+        expr: home_pi_throttling_probe_success{job="raspberry-pi"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Raspberry Pi throttling probe has failed for 5 minutes"
+          description: "Check pi-throttling-probe.service journal on the Pi. No notification receiver is configured."

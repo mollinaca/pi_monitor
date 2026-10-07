@@ -54,7 +54,7 @@
       },
       "targets": [
         {
-          "expr": "count(ALERTS{alertname=~\"Home(Textfile|SmartTextfile)Stale\",alertstate=\"firing\"}) or vector(0)",
+          "expr": "count(ALERTS{alertname=~\"Home(Textfile|SmartTextfile|PiThrottlingTextfile)Stale\",alertstate=\"firing\"}) or vector(0)",
           "instant": true,
           "refId": "A"
         }
@@ -71,7 +71,7 @@
       },
       "id": 2,
       "options": {
-        "content": "### Freshness check\n\n- **Last scrape** is the latest Prometheus sample time for the job that reads each file. **Last updated** is the file's modification time. Different jobs scrape at different intervals; Last scrape is blank when no sample exists in the past 36 hours.\n- If Last scrape advances while Last updated stays old, check the probe or timer. AP Web, Router, Wi-Fi, internet speed, and LAN Map files become stale after **24 hours** without an update; the daily SSD SMART file has a **30-hour** limit.\n- The manually run energy import is excluded. Stale files appear in the count above and in Prometheus **Alerts**. No notification receiver is configured. Missing files are outside this check.\n- When adding a probe or monitored file, update the Prometheus freshness rules, this dashboard, and the README.",
+        "content": "### Freshness check\n\n- **Last scrape** is the latest Prometheus sample time for the job that reads each file. **Last updated** is the file's modification time. Different jobs scrape at different intervals; Last scrape is blank when no sample exists in the past 36 hours.\n- If Last scrape advances while Last updated stays old, check the probe or timer. AP Web, Router, Wi-Fi, internet speed, and LAN Map files become stale after **24 hours** without an update; the daily SSD SMART file has a **30-hour** limit, and the one-minute Pi throttling file has a **10-minute** limit.\n- The manually run energy import is excluded. Stale files appear in the count above and in Prometheus **Alerts**. No notification receiver is configured. Missing files are outside this check.\n- When adding a probe or monitored file, update the Prometheus freshness rules, this dashboard, and the README.",
         "mode": "markdown"
       },
       "title": "About this dashboard",
@@ -108,14 +108,14 @@
       },
       "targets": [
         {
-          "expr": "max by (file) (label_replace(max by (job) (max_over_time(timestamp(home_ap_web_probe_success{job=\"ap-web\"})[36h:1m])), \"file\", \"/textfile/ap-web.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_router_probe_success{job=\"router\"})[36h:1m])), \"file\", \"/textfile/router.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_internet_speedtest_probe_success{job=\"internet-speed\"})[36h:1m])), \"file\", \"/textfile/internet-speed.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_ssd_smart_probe_success{job=\"ssd-smart\"})[36h:1m])), \"file\", \"/textfile/ssd-smart.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_lan_map_nodes{job=\"raspberry-pi\"})[36h:1m])), \"file\", \"/textfile/lan-map.prom\", \"job\", \".*\") or label_replace(max by (target) (max_over_time(timestamp(home_wifi_probe_success{job=\"raspberry-pi\"})[36h:1m])), \"file\", \"/textfile/wifi-$1.prom\", \"target\", \"(.*)\")) * 1000",
+          "expr": "max by (file) (label_replace(max by (job) (max_over_time(timestamp(home_ap_web_probe_success{job=\"ap-web\"})[36h:1m])), \"file\", \"/textfile/ap-web.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_router_probe_success{job=\"router\"})[36h:1m])), \"file\", \"/textfile/router.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_internet_speedtest_probe_success{job=\"internet-speed\"})[36h:1m])), \"file\", \"/textfile/internet-speed.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_ssd_smart_probe_success{job=\"ssd-smart\"})[36h:1m])), \"file\", \"/textfile/ssd-smart.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_pi_throttling_probe_success{job=\"raspberry-pi\"})[36h:1m])), \"file\", \"/textfile/pi-throttling.prom\", \"job\", \".*\") or label_replace(max by (job) (max_over_time(timestamp(home_lan_map_nodes{job=\"raspberry-pi\"})[36h:1m])), \"file\", \"/textfile/lan-map.prom\", \"job\", \".*\") or label_replace(max by (target) (max_over_time(timestamp(home_wifi_probe_success{job=\"raspberry-pi\"})[36h:1m])), \"file\", \"/textfile/wifi-$1.prom\", \"target\", \"(.*)\")) * 1000",
           "format": "table",
           "instant": true,
           "range": false,
           "refId": "A"
         },
         {
-          "expr": "max by (file) (node_textfile_mtime_seconds{job=\"raspberry-pi\",file=~\"/textfile/(ap-web|internet-speed|lan-map|router|ssd-smart|wifi-ap1_24|wifi-ap1_50|wifi-ap2_24|wifi-ap2_50)\\\\.prom\"}) * 1000",
+          "expr": "max by (file) (node_textfile_mtime_seconds{job=\"raspberry-pi\",file=~\"/textfile/(ap-web|internet-speed|lan-map|pi-throttling|router|ssd-smart|wifi-ap1_24|wifi-ap1_50|wifi-ap2_24|wifi-ap2_50)\\\\.prom\"}) * 1000",
           "format": "table",
           "instant": true,
           "range": false,
@@ -169,5 +169,5 @@
   "timezone": "browser",
   "title": "Probe Freshness",
   "uid": "probe-freshness",
-  "version": 4
+  "version": 5
 }

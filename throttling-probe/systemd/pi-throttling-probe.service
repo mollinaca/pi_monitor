@@ -1,0 +1,11 @@
+[Unit]
+Description=Raspberry Pi voltage and throttling metrics probe
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/bin/python3 /mnt/data/pi_monitor/throttling-probe/collect.py --output /mnt/data/pi_monitor/data/node-exporter/textfile/pi-throttling.prom
+UMask=0022
+NoNewPrivileges=true
