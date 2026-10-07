@@ -28,12 +28,12 @@ services:
     container_name: node-exporter
     restart: unless-stopped
     pid: host
+    network_mode: host
     command:
       - --path.rootfs=/host
       - --path.procfs=/host/proc
+      - --web.listen-address=172.17.0.1:9100
       - --collector.textfile.directory=/textfile
-    ports:
-      - "127.0.0.1:9100:9100"
     security_opt:
       - no-new-privileges:true
     read_only: true
@@ -55,6 +55,8 @@ services:
     restart: unless-stopped
     depends_on:
       - node-exporter
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
