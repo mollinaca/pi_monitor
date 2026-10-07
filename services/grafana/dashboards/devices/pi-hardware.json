@@ -21,7 +21,7 @@
     {
       "gridPos": { "h": 7, "w": 16, "x": 8, "y": 0 },
       "id": 24,
-      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### About this dashboard\n\n- Host metrics are collected from the Raspberry Pi by node_exporter every **one minute**.\n- It covers CPU, memory, temperature, filesystems, and I/O for the microSD and external SSD.\n- External SSD SMART attributes are collected separately, once per day. The SMART probe currently uses the fixed device path `/dev/sda`; check that it still points to the external SSD if device names change. Storage capacity and I/O are trend indicators, not remaining-life predictions.", "mode": "markdown" },
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### About this dashboard\n\n- Host metrics are collected from the Raspberry Pi by node_exporter every **one minute**.\n- It covers CPU, memory, temperature, filesystems, Ethernet traffic, and I/O for the microSD and external SSD.\n- External SSD SMART attributes are collected separately, once per day. The SMART probe currently uses the fixed device path `/dev/sda`; check that it still points to the external SSD if device names change. Storage capacity and I/O are trend indicators, not remaining-life predictions.", "mode": "markdown" },
       "pluginVersion": "13.2.2",
       "title": "About this dashboard",
       "type": "text"
@@ -147,7 +147,18 @@
       "type": "timeseries"
     },
     {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Raspberry Pi eth0 traffic measured from host network counters. Receive and transmit are shown as bytes per second, averaged over five minutes.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "min": 0, "unit": "Bps" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 54 },
+      "id": 25,
+      "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "targets": [ { "expr": "rate(node_network_receive_bytes_total{job=\"raspberry-pi\",device=\"eth0\"}[5m])", "legendFormat": "Receive", "refId": "A" }, { "expr": "rate(node_network_transmit_bytes_total{job=\"raspberry-pi\",device=\"eth0\"}[5m])", "legendFormat": "Transmit", "refId": "B" } ],
+      "title": "Ethernet traffic (eth0)",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 62 },
       "id": 9,
       "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Storage lifetime notes\n\n- **microSD:** consumer SD cards generally do not expose a standardized remaining-life or write-endurance counter. This dashboard therefore tracks root filesystem capacity, write/read trend, and I/O pressure as early-warning signals.\n- **External SSD:** a separate probe reads SMART attributes once per day. SMART results and all Prometheus data are stored on `/mnt/data`, not on the microSD.\n- node_exporter reads kernel counters; its one-minute scrape does not itself write to the microSD.", "mode": "markdown" },
       "pluginVersion": "13.2.2",
@@ -157,7 +168,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" }, "mappings": [ { "options": { "0": { "color": "red", "text": "NG" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 62 },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 70 },
       "id": 12,
       "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "targets": [ { "expr": "last_over_time(home_ssd_smart_overall_passed{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "SMART", "refId": "A" } ],
@@ -167,7 +178,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 60 }, { "color": "red", "value": 70 } ] }, "unit": "celsius" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 62 },
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 70 },
       "id": 13,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "targets": [ { "expr": "last_over_time(home_ssd_smart_temperature_celsius{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "SSD", "refId": "A" } ],
@@ -177,7 +188,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "orange", "value": 20 }, { "color": "green", "value": 50 } ] }, "unit": "percent" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 62 },
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 70 },
       "id": 14,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "targets": [ { "expr": "last_over_time(home_ssd_smart_available_reserved_space_percent{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "vendor value", "refId": "A" } ],
@@ -187,7 +198,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 62 },
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 70 },
       "id": 15,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showPercentChange": false, "textMode": "auto", "wideLayout": true },
       "targets": [ { "expr": "last_over_time(home_ssd_smart_error_log_entries{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "entries", "refId": "A" } ],
@@ -197,7 +208,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 69 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 77 },
       "id": 16,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "last_over_time(home_ssd_smart_reallocated_sectors{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "reallocated", "refId": "A" }, { "expr": "last_over_time(home_ssd_smart_pending_sectors{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "pending", "refId": "B" }, { "expr": "last_over_time(home_ssd_smart_offline_uncorrectable_sectors{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "uncorrectable", "refId": "C" }, { "expr": "last_over_time(home_ssd_smart_program_failures{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "program failures", "refId": "D" }, { "expr": "last_over_time(home_ssd_smart_erase_failures{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "erase failures", "refId": "E" }, { "expr": "last_over_time(home_ssd_smart_udma_crc_errors{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "CRC errors", "refId": "F" } ],
@@ -207,7 +218,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "suffix:h" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 147 },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 155 },
       "id": 17,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "last_over_time(home_ssd_smart_power_on_hours{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "hours", "refId": "A" } ],
@@ -217,7 +228,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 147 },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 155 },
       "id": 19,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "last_over_time(home_ssd_smart_power_cycle_count{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "cycles", "refId": "A" } ],
@@ -227,7 +238,7 @@
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 4, "showPoints": "auto" }, "unit": "none" }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 147 },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 155 },
       "id": 20,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [ { "expr": "last_over_time(home_ssd_smart_total_lbas_written_raw{job=\"ssd-smart\"}[2h]) and on (job, instance, device) (last_over_time(home_ssd_smart_probe_success{job=\"ssd-smart\"}[2h]) == 1) and on (job, instance, device) (time() - last_over_time(home_ssd_smart_probe_timestamp_seconds{job=\"ssd-smart\"}[2h]) < 93600)", "legendFormat": "raw counter", "refId": "A" } ],
@@ -235,7 +246,7 @@
       "type": "timeseries"
     },
     {
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 85 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 93 },
       "id": 18,
       "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### SMART and lifetime interpretation\n\n- SMART health and error counters are **indicators**, not a guaranteed failure forecast. A drive can fail suddenly due to controller, USB, power, or other physical faults even when these values are normal. Keep backups of important data.\n- **Available reserved space** is a vendor-reported SMART value. It is not displayed as a predicted remaining lifetime.\n- **Total LBAs written (raw)** has an unverified vendor unit on this model, so it is retained only as a trend counter and is not converted to TB/TBW.\n- The SMART probe reads attributes once per day and does not start a self-test. A lifetime estimate, if ever added, must be explicitly marked as a prediction with its assumptions.\n- SMART panels retain the latest hourly-scraped value while the probe reports success; they go blank when it reports failure or its last attempt is more than 26 hours old.", "mode": "markdown" },
       "pluginVersion": "13.2.2",

@@ -30,6 +30,7 @@ services:
     pid: host
     command:
       - --path.rootfs=/host
+      - --path.procfs=/host/proc
       - --collector.textfile.directory=/textfile
     ports:
       - "127.0.0.1:9100:9100"
@@ -45,6 +46,7 @@ services:
         max-file: "3"
     volumes:
       - /:/host:ro,rslave
+      - /proc:/host/proc:ro
       - /mnt/data/pi_monitor/data/node-exporter/textfile:/textfile:ro
 
   prometheus:
