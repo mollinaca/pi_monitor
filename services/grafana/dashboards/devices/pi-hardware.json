@@ -153,7 +153,7 @@
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 30 },
       "id": 25,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "rate(node_network_receive_bytes_total{job=\"raspberry-pi\",device=\"eth0\"}[5m])", "legendFormat": "Receive", "refId": "A" }, { "expr": "rate(node_network_transmit_bytes_total{job=\"raspberry-pi\",device=\"eth0\"}[5m])", "legendFormat": "Transmit", "refId": "B" } ],
+      "targets": [ { "expr": "rate(node_network_receive_bytes_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",device=\"eth0\"}[5m])", "legendFormat": "Receive", "refId": "A" }, { "expr": "rate(node_network_transmit_bytes_total{job=\"raspberry-pi\",instance=\"host.docker.internal:9100\",device=\"eth0\"}[5m])", "legendFormat": "Transmit", "refId": "B" } ],
       "title": "Ethernet traffic (eth0)",
       "type": "timeseries"
     },
