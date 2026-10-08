@@ -9,35 +9,35 @@
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [{ "type": "value", "options": { "0": { "text": "Failed", "color": "red" }, "1": { "text": "OK", "color": "green" }}}], "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] },
       "gridPos": { "h": 7, "w": 6, "x": 0, "y": 7 }, "id": 1,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
-      "targets": [{ "expr": "home_router_probe_success{job=\"router\"}", "refId": "A" }], "title": "Latest router read", "type": "stat"
+      "targets": [{ "expr": "max without(instance) (home_router_probe_success{job=\"router\"})", "refId": "A" }], "title": "Latest router read", "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "dateTimeAsLocal" }, "overrides": [] },
       "gridPos": { "h": 7, "w": 8, "x": 0, "y": 0 }, "id": 2,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
-      "targets": [{ "expr": "home_router_probe_timestamp_seconds{job=\"router\"} * 1000", "refId": "A" }], "title": "Last read attempt", "type": "stat"
+      "targets": [{ "expr": "max without(instance) (home_router_probe_timestamp_seconds{job=\"router\"} * 1000)", "refId": "A" }], "title": "Last read attempt", "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] } }, "overrides": [] },
       "gridPos": { "h": 7, "w": 6, "x": 6, "y": 7 }, "id": 3,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
-      "targets": [{ "expr": "home_router_cpu_utilization_percent{job=\"router\"}", "refId": "A" }], "title": "CPU utilization", "type": "stat"
+      "targets": [{ "expr": "max without(instance) (home_router_cpu_utilization_percent{job=\"router\"})", "refId": "A" }], "title": "CPU utilization", "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] } }, "overrides": [] },
       "gridPos": { "h": 7, "w": 6, "x": 12, "y": 7 }, "id": 4,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
-      "targets": [{ "expr": "home_router_memory_utilization_percent{job=\"router\"}", "refId": "A" }], "title": "Memory utilization", "type": "stat"
+      "targets": [{ "expr": "max without(instance) (home_router_memory_utilization_percent{job=\"router\"})", "refId": "A" }], "title": "Memory utilization", "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 }, "overrides": [] },
       "gridPos": { "h": 7, "w": 6, "x": 18, "y": 7 }, "id": 5,
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
-      "targets": [{ "expr": "home_router_table_entries{job=\"router\",table=\"dhcp\"}", "refId": "A" }], "title": "DHCP entries", "type": "stat"
+      "targets": [{ "expr": "max without(instance) (home_router_table_entries{job=\"router\",table=\"dhcp\"})", "refId": "A" }], "title": "DHCP entries", "type": "stat"
     },
     {
       "gridPos": { "h": 7, "w": 16, "x": 8, "y": 0 }, "id": 6,
@@ -49,21 +49,21 @@
       "fieldConfig": { "defaults": { "unit": "Mbps", "min": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 14 }, "id": 7,
       "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "rate(home_router_interface_counter{job=\"router\",counter=\"receive_bytes\"}[$__rate_interval]) * 8 / 1000000", "legendFormat": "{{interface}} receive", "refId": "A" } ], "title": "LAN receive traffic by router interface", "type": "timeseries"
+      "targets": [ { "expr": "max without(instance) (rate(home_router_interface_counter{job=\"router\",counter=\"receive_bytes\"}[$__rate_interval]) * 8 / 1000000)", "legendFormat": "{{interface}} receive", "refId": "A" } ], "title": "LAN receive traffic by router interface", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "Mbps", "min": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 14 }, "id": 11,
       "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "rate(home_router_interface_counter{job=\"router\",counter=\"transmit_bytes\"}[$__rate_interval]) * 8 / 1000000", "legendFormat": "{{interface}} transmit", "refId": "A" } ], "title": "LAN transmit traffic by router interface", "type": "timeseries"
+      "targets": [ { "expr": "max without(instance) (rate(home_router_interface_counter{job=\"router\",counter=\"transmit_bytes\"}[$__rate_interval]) * 8 / 1000000)", "legendFormat": "{{interface}} transmit", "refId": "A" } ], "title": "LAN transmit traffic by router interface", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "none", "decimals": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto", "axisSoftMin": 0 } }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 23 }, "id": 8,
       "options": { "legend": { "calcs": ["lastNotNull", "min", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [{ "expr": "home_router_table_entries{job=\"router\"}", "legendFormat": "{{table}}", "refId": "A" }], "title": "DHCP, ARP, and switching-MAC table entries", "type": "timeseries"
+      "targets": [{ "expr": "max without(instance) (home_router_table_entries{job=\"router\"})", "legendFormat": "{{table}}", "refId": "A" }], "title": "DHCP, ARP, and switching-MAC table entries", "type": "timeseries"
     },
     {
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 23 }, "id": 12,
@@ -76,8 +76,8 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 }, "id": 9,
       "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
       "targets": [
-        { "expr": "home_router_cpu_utilization_percent{job=\"router\"}", "legendFormat": "CPU", "refId": "A" },
-        { "expr": "home_router_memory_utilization_percent{job=\"router\"}", "legendFormat": "Memory", "refId": "B" }
+        { "expr": "max without(instance) (home_router_cpu_utilization_percent{job=\"router\"})", "legendFormat": "CPU", "refId": "A" },
+        { "expr": "max without(instance) (home_router_memory_utilization_percent{job=\"router\"})", "legendFormat": "Memory", "refId": "B" }
       ], "title": "Router resource utilization", "type": "timeseries"
     },
     {
@@ -85,7 +85,7 @@
       "fieldConfig": { "defaults": { "unit": "s", "min": 0, "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 }, "id": 10,
       "options": { "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [{ "expr": "home_router_probe_duration_seconds{job=\"router\"}", "legendFormat": "read duration", "refId": "A" }], "title": "Router read duration", "type": "timeseries"
+      "targets": [{ "expr": "max without(instance) (home_router_probe_duration_seconds{job=\"router\"})", "legendFormat": "read duration", "refId": "A" }], "title": "Router read duration", "type": "timeseries"
     }
   ],
   "refresh": "5m", "schemaVersion": 42, "tags": ["router", "network", "dhcp"],

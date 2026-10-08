@@ -49,28 +49,28 @@
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisSoftMin": 0, "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "decimals": 0, "unit": "none" }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 14 }, "id": 5,
       "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_ap_web_band_associated_clients{ap=~\"$ap\",job=\"ap-web\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ], "title": "Associated clients by band", "type": "timeseries"
+      "targets": [ { "expr": "max without(instance) (home_ap_web_band_associated_clients{ap=~\"$ap\",job=\"ap-web\"})", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ], "title": "Associated clients by band", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "Mbps" }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 14 }, "id": 6,
       "options": { "legend": { "calcs": [ "lastNotNull", "min", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_ap_web_band_average_data_rate_mbps{ap=~\"$ap\",job=\"ap-web\"}", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ], "title": "Average client link data rate by band", "type": "timeseries"
+      "targets": [ { "expr": "max without(instance) (home_ap_web_band_average_data_rate_mbps{ap=~\"$ap\",job=\"ap-web\"})", "legendFormat": "{{ap}} {{band}}", "refId": "A" } ], "title": "Average client link data rate by band", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "auto" }, "unit": "s" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 }, "id": 7,
       "options": { "legend": { "calcs": [ "lastNotNull", "max" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_ap_web_probe_duration_seconds{ap=~\"$ap\",job=\"ap-web\"}", "legendFormat": "{{ap}}", "refId": "A" } ], "title": "AP read duration", "type": "timeseries"
+      "targets": [ { "expr": "max without(instance) (home_ap_web_probe_duration_seconds{ap=~\"$ap\",job=\"ap-web\"})", "legendFormat": "{{ap}}", "refId": "A" } ], "title": "AP read duration", "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" }, "mappings": [ { "options": { "0": { "color": "red", "text": "Failed" }, "1": { "color": "green", "text": "OK" } }, "type": "value" } ], "unit": "none" }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 }, "id": 8,
       "options": { "alignValue": "center", "legend": { "calcs": [ "lastNotNull" ], "displayMode": "table", "placement": "bottom", "showLegend": true }, "mergeValues": true, "rowHeight": 0.9, "showValue": "always", "tooltip": { "mode": "multi", "sort": "none" } },
-      "targets": [ { "expr": "home_ap_web_probe_success{ap=~\"$ap\",job=\"ap-web\"}", "legendFormat": "{{ap}}", "refId": "A" } ], "title": "AP read success", "type": "state-timeline"
+      "targets": [ { "expr": "max without(instance) (home_ap_web_probe_success{ap=~\"$ap\",job=\"ap-web\"})", "legendFormat": "{{ap}}", "refId": "A" } ], "title": "AP read success", "type": "state-timeline"
     }
   ],
   "refresh": "5m", "schemaVersion": 42, "tags": [ "wifi", "ap", "network" ],
