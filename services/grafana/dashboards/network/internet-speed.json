@@ -1,6 +1,6 @@
 {
   "annotations": { "list": [] },
-  "description": "Fixed-server Ookla measurements from the Raspberry Pi wired eth0 interface.",
+  "description": "Ookla measurements from the Raspberry Pi wired eth0 interface.",
   "editable": false,
   "panels": [
     {
@@ -40,7 +40,7 @@
     },
     {
       "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 }, "id": 6,
-      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Measurement conditions\n\n- Measurements use the **Ookla Speedtest CLI** from the Raspberry Pi's wired `eth0` interface.\n- The test server is fixed to **IPA CyberLab 400G, Tokyo, Japan** (server ID `48463`).\n- A full test runs at **:12 and :42 each hour** (Raspberry Pi local time) and uses substantial bandwidth. A failed test writes no speed or latency value, but the graph may retain the previous successful value for up to 35 minutes. Check **Latest test status** for the most recent attempt. This measures the wired Pi's internet connection, not Wi-Fi throughput.", "mode": "markdown" }, "pluginVersion": "13.2.2", "title": "About this measurement", "type": "text"
+      "options": { "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false }, "content": "### Measurement conditions\n\n- Measurements use the **Ookla Speedtest CLI** from the Raspberry Pi's wired `eth0` interface.\n- The test uses a configured server. Its identity is recorded in the metric labels and may change if that server becomes unavailable, so compare measurements across a server change with care.\n- A full test runs at **:12 and :42 each hour** (Raspberry Pi local time) and uses substantial bandwidth. A failed test writes no speed or latency value, but the graph may retain the previous successful value for up to 35 minutes. Check **Latest test status** for the most recent attempt. This measures the wired Pi's internet connection, not Wi-Fi throughput.", "mode": "markdown" }, "pluginVersion": "13.2.2", "title": "About this measurement", "type": "text"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
