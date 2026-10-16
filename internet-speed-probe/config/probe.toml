@@ -1,12 +1,7 @@
 [probe]
-# The server was selected by an eth0-bound test on 2026-10-15 after the
-# previous server (48463) stopped appearing in Ookla's server list.
-# Fixing it keeps measurements comparable until the server becomes unavailable.
 speedtest_binary = "/usr/bin/speedtest"
 interface = "eth0"
-server_id = 76556
-server_name = "KAIT NWLAB 400G"
-server_location = "Sagamihara, Japan"
 timeout_seconds = 120
 metrics_directory = "/mnt/data/pi_monitor/data/node-exporter/textfile"
 metrics_filename = "internet-speed.prom"
+history_path = "/mnt/data/pi_monitor/data/internet-speed/history.db"

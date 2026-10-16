@@ -1,5 +1,5 @@
 [Unit]
-Description=Fixed-server internet speed metrics probe
+Description=Internet speed metrics probe
 Wants=network-online.target
 After=network-online.target local-fs.target
 

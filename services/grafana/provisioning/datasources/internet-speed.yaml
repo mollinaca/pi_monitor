@@ -1,0 +1,11 @@
+apiVersion: 1
+
+datasources:
+  - name: Internet Speed History
+    uid: internet-speed-sqlite
+    type: frser-sqlite-datasource
+    access: proxy
+    isDefault: false
+    editable: false
+    jsonData:
+      path: /var/lib/grafana/internet-speed/history.db

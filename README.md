@@ -165,7 +165,7 @@ Gatusの履歴は、外部ストレージ上の `/mnt/data/pi_monitor/data/gatus
 
 ## インターネット回線速度
 
-Ookla Speedtest CLIをPiホスト上で実行し、固定した東京の測定サーバー（ID `48463`）に対する下り・上り速度、idle latency、jitter、試験通信量、成否を収集します。Piの通常経路である有線`eth0`へ明示的にバインドするため、これは有線LAN地点から見たインターネット接続性能です。Wi-Fi区間の実効速度を表すものではありません。
+Ookla Speedtest CLIをPiホスト上で実行し、その都度自動選択された測定サーバーに対する下り・上り速度、idle latency、jitter、試験通信量、成否を収集します。Piの通常経路である有線`eth0`へ明示的にバインドするため、これは有線LAN地点から見たインターネット接続性能です。Wi-Fi区間の実効速度を表すものではありません。成功した測定は時刻・上下速度・実際のサーバーID／名前／ロケーションを`data/internet-speed/history.db`へ1回1行で保存し、Grafanaの`Internet Speed`に履歴テーブルを表示します。測定サーバーが変わった前後の速度は条件が異なるため注意して比較してください。
 
 速度試験は帯域と通信量を大きく使うため、Prometheusのscrapeでは実行しません。`pi-internet-speed-probe.timer` が毎時12分・42分に実行し、結果を `data/node-exporter/textfile/internet-speed.prom` へ出力します。Prometheusの`internet-speed`ジョブは3分ごとに既存のTextfileを読むだけです。
 

@@ -100,4 +100,5 @@ services:
       - ./services/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./services/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - /mnt/data/pi_monitor/data/lan-map:/var/lib/grafana/lan-map:ro
+      - /mnt/data/pi_monitor/data/internet-speed:/var/lib/grafana/internet-speed:ro
       - /mnt/data/pi_monitor/data/grafana:/var/lib/grafana

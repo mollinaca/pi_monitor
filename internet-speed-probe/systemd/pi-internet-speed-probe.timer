@@ -1,5 +1,5 @@
 [Unit]
-Description=Run the fixed-server internet speed metrics probe every 30 minutes
+Description=Run the internet speed metrics probe every 30 minutes
 
 [Timer]
 OnCalendar=*-*-* *:12/30:00

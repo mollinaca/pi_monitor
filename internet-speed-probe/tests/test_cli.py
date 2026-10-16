@@ -1,28 +1,29 @@
 from __future__ import annotations
 
+import sqlite3
+import subprocess
 from pathlib import Path
 
 from prometheus_client.parser import text_string_to_metric_families
 
-from pi_internet_speed_probe.cli import Settings, parse_result, valid_result, write_metrics
+from pi_internet_speed_probe.cli import Settings, parse_result, run_speedtest, valid_result, write_history, write_metrics
 
 
 def settings(directory: Path) -> Settings:
     return Settings(
         speedtest_binary=Path("/usr/bin/speedtest"),
         interface="eth0",
-        server_id=48463,
-        server_name="IPA CyberLab 400G",
-        server_location="Tokyo, Japan",
         timeout_seconds=120,
         metrics_directory=directory,
         metrics_filename="internet-speed.prom",
+        history_path=directory / "history.db",
     )
 
 
 def payload() -> dict:
     return {
         "type": "result",
+        "server": {"id": 48463, "name": "IPA CyberLab 400G", "location": "Tokyo"},
         "ping": {"jitter": 0.2, "latency": 4.6},
         "download": {"bandwidth": 109703076, "bytes": 800789269},
         "upload": {"bandwidth": 35928086, "bytes": 162650910},
@@ -40,6 +41,16 @@ def test_parse_result_ignores_non_json_and_selects_result() -> None:
     assert parse_result(output) == payload()
 
 
+def test_speedtest_uses_automatic_server_selection(tmp_path: Path, monkeypatch) -> None:
+    def fake_run(command, **_kwargs):
+        assert "--interface=eth0" in command
+        assert not any(part.startswith("--server-id") for part in command)
+        return subprocess.CompletedProcess(command, 0, '{"type":"result"}', "")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    assert run_speedtest(settings(tmp_path))[0] == 0
+
+
 def test_write_metrics_records_a_successful_test(tmp_path: Path) -> None:
     output = write_metrics(settings(tmp_path), command_exit_status=0, payload=payload(), duration_seconds=12.3)
     values = samples(output)
@@ -47,6 +58,15 @@ def test_write_metrics_records_a_successful_test(tmp_path: Path) -> None:
     assert values["home_internet_speedtest_download_bytes_per_second"] == 109703076
     assert values["home_internet_speedtest_upload_bytes_per_second"] == 35928086
     assert values["home_internet_speedtest_ping_latency_milliseconds"] == 4.6
+    assert 'server_id="48463"' in output.read_text()
+
+
+def test_history_records_one_row_per_successful_measurement(tmp_path: Path) -> None:
+    write_history(settings(tmp_path), payload(), 1_700_000_000)
+    with sqlite3.connect(tmp_path / "history.db") as connection:
+        assert connection.execute("SELECT measured_at, download_mbps, upload_mbps, server_id, server_location FROM measurement").fetchall() == [
+            (1_700_000_000, 877.624608, 287.424688, 48463, "Tokyo")
+        ]
 
 
 def test_write_metrics_records_a_failed_test_without_false_zero_speed(tmp_path: Path) -> None:
@@ -58,7 +78,7 @@ def test_write_metrics_records_a_failed_test_without_false_zero_speed(tmp_path: 
 
 
 def test_result_without_required_bandwidth_is_a_collection_error(tmp_path: Path) -> None:
-    incomplete = {"type": "result", "download": {"bandwidth": 10}}
+    incomplete = {"type": "result", "server": {"id": 1}, "download": {"bandwidth": 10}}
     assert not valid_result(incomplete)
     output = write_metrics(settings(tmp_path), command_exit_status=0, payload=incomplete, duration_seconds=1)
     values = samples(output)
@@ -70,6 +90,12 @@ def test_zero_bandwidth_is_a_valid_numeric_result() -> None:
     result = payload()
     result["download"]["bandwidth"] = 0
     assert valid_result(result)
+
+
+def test_missing_server_is_an_invalid_result() -> None:
+    result = payload()
+    del result["server"]
+    assert not valid_result(result)
 
 
 def test_main_returns_one_for_incomplete_result(tmp_path: Path, monkeypatch, capsys) -> None:

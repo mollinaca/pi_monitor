@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import sqlite3
 import subprocess
 import sys
 import time
@@ -18,20 +19,14 @@ from prometheus_client import CollectorRegistry, Gauge, write_to_textfile
 class Settings:
     speedtest_binary: Path
     interface: str
-    server_id: int
-    server_name: str
-    server_location: str
     timeout_seconds: int
     metrics_directory: Path
     metrics_filename: str
+    history_path: Path
 
     @property
     def metrics_path(self) -> Path:
         return self.metrics_directory / self.metrics_filename
-
-    @property
-    def labels(self) -> tuple[str, str, str, str]:
-        return (self.interface, str(self.server_id), self.server_name, self.server_location)
 
 
 def load_settings(path: Path) -> Settings:
@@ -43,32 +38,30 @@ def load_settings(path: Path) -> Settings:
     string_fields = (
         "speedtest_binary",
         "interface",
-        "server_name",
-        "server_location",
+        "history_path",
         "metrics_directory",
         "metrics_filename",
     )
     if any(not isinstance(probe.get(key), str) or not probe[key] for key in string_fields):
         raise ValueError("probe configuration contains missing or invalid string values")
-    if not isinstance(probe.get("server_id"), int) or probe["server_id"] <= 0:
-        raise ValueError("server_id must be a positive integer")
     if not isinstance(probe.get("timeout_seconds"), int) or probe["timeout_seconds"] <= 0:
         raise ValueError("timeout_seconds must be a positive integer")
     binary = Path(probe["speedtest_binary"])
     if not binary.is_absolute():
         raise ValueError("speedtest_binary must be an absolute path")
+    history_path = Path(probe["history_path"])
+    if not history_path.is_absolute():
+        raise ValueError("history_path must be an absolute path")
     filename = probe["metrics_filename"]
     if Path(filename).name != filename or not filename.endswith(".prom"):
         raise ValueError("metrics_filename must be a plain .prom filename")
     return Settings(
         speedtest_binary=binary,
         interface=probe["interface"],
-        server_id=probe["server_id"],
-        server_name=probe["server_name"],
-        server_location=probe["server_location"],
         timeout_seconds=probe["timeout_seconds"],
         metrics_directory=Path(probe["metrics_directory"]),
         metrics_filename=filename,
+        history_path=history_path,
     )
 
 
@@ -92,7 +85,6 @@ def run_speedtest(settings: Settings) -> tuple[int, dict[str, Any] | None, str, 
                 "--accept-license",
                 "--accept-gdpr",
                 f"--interface={settings.interface}",
-                f"--server-id={settings.server_id}",
                 "--format=json",
                 "--progress=no",
             ],
@@ -127,10 +119,47 @@ def numeric(payload: dict[str, Any], *keys: str) -> float | None:
 
 
 def valid_result(payload: dict[str, Any] | None) -> bool:
-    return isinstance(payload, dict) and payload.get("type") == "result" and all(
+    return (
+        isinstance(payload, dict)
+        and payload.get("type") == "result"
+        and all(
         numeric(payload, direction, "bandwidth") is not None
         for direction in ("download", "upload")
+        )
+        and isinstance(payload.get("server"), dict)
+        and isinstance(payload["server"].get("id"), int)
+        and payload["server"]["id"] > 0
     )
+
+
+def server_labels(payload: dict[str, Any] | None) -> tuple[str, str, str]:
+    if not valid_result(payload):
+        return ("", "", "")
+    server = payload["server"]
+    return (str(server["id"]), str(server.get("name", "")), str(server.get("location", "")))
+
+
+def write_history(settings: Settings, payload: dict[str, Any], measured_at: float) -> None:
+    settings.history_path.parent.mkdir(parents=True, exist_ok=True)
+    server_id, server_name, server_location = server_labels(payload)
+    with sqlite3.connect(settings.history_path) as connection:
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS measurement (
+                id INTEGER PRIMARY KEY,
+                measured_at INTEGER NOT NULL,
+                download_mbps REAL NOT NULL,
+                upload_mbps REAL NOT NULL,
+                server_id INTEGER NOT NULL,
+                server_name TEXT NOT NULL,
+                server_location TEXT NOT NULL
+            )"""
+        )
+        connection.execute(
+            "INSERT INTO measurement (measured_at, download_mbps, upload_mbps, server_id, server_name, server_location) VALUES (?, ?, ?, ?, ?, ?)",
+            (int(measured_at), numeric(payload, "download", "bandwidth") * 8 / 1_000_000,
+             numeric(payload, "upload", "bandwidth") * 8 / 1_000_000,
+             int(server_id), server_name, server_location),
+        )
 
 
 def write_metrics(
@@ -143,15 +172,16 @@ def write_metrics(
     settings.metrics_directory.mkdir(parents=True, exist_ok=True)
     registry = CollectorRegistry()
     label_names = ("interface", "server_id", "server_name", "server_location")
+    labels = (settings.interface, *server_labels(payload))
 
     def gauge(name: str, documentation: str) -> Gauge:
         return Gauge(name, documentation, label_names, registry=registry)
 
     success = valid_result(payload) and command_exit_status == 0
-    gauge("home_internet_speedtest_probe_success", "1 if the fixed-server Ookla test succeeded").labels(*settings.labels).set(int(success))
-    gauge("home_internet_speedtest_probe_timestamp_seconds", "Unix timestamp of the most recent speed test attempt").labels(*settings.labels).set(time.time())
-    gauge("home_internet_speedtest_probe_duration_seconds", "Wall-clock duration of the most recent speed test attempt").labels(*settings.labels).set(duration_seconds)
-    gauge("home_internet_speedtest_command_exit_status", "Speedtest CLI exit status from the most recent attempt").labels(*settings.labels).set(command_exit_status)
+    gauge("home_internet_speedtest_probe_success", "1 if the Ookla test succeeded").labels(*labels).set(int(success))
+    gauge("home_internet_speedtest_probe_timestamp_seconds", "Unix timestamp of the most recent speed test attempt").labels(*labels).set(time.time())
+    gauge("home_internet_speedtest_probe_duration_seconds", "Wall-clock duration of the most recent speed test attempt").labels(*labels).set(duration_seconds)
+    gauge("home_internet_speedtest_command_exit_status", "Speedtest CLI exit status from the most recent attempt").labels(*labels).set(command_exit_status)
 
     if success and payload is not None:
         metric_values = (
@@ -165,14 +195,14 @@ def write_metrics(
         )
         for name, documentation, value in metric_values:
             if value is not None:
-                gauge(name, documentation).labels(*settings.labels).set(value)
+                gauge(name, documentation).labels(*labels).set(value)
 
     write_to_textfile(str(settings.metrics_path), registry)
     return settings.metrics_path
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Collect fixed-server Ookla speed test metrics")
+    parser = argparse.ArgumentParser(description="Collect Ookla speed test metrics")
     parser.add_argument("--config", required=True, type=Path)
     try:
         args = parser.parse_args(argv)
@@ -181,13 +211,15 @@ def main(argv: list[str] | None = None) -> int:
     try:
         settings = load_settings(args.config)
         exit_status, payload, error, duration = run_speedtest(settings)
+        if exit_status == 0 and valid_result(payload):
+            write_history(settings, payload, time.time())
         destination = write_metrics(
             settings,
             command_exit_status=exit_status,
             payload=payload,
             duration_seconds=duration,
         )
-    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+    except (OSError, ValueError, sqlite3.Error, subprocess.SubprocessError) as exc:
         print(f"internet-speed stage=setup_or_write error={type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
     except Exception as exc:
@@ -198,5 +230,5 @@ def main(argv: list[str] | None = None) -> int:
         detail = " ".join(error.split())[:500]
         print(f"internet-speed stage=collect error={reason}" + (f" detail={detail}" if detail else ""), file=sys.stderr)
         return 1
-    print(f"Internet speed probe | server={settings.server_id} | metrics={destination}")
+    print(f"Internet speed probe | server={server_labels(payload)[0]} | metrics={destination}")
     return 0
