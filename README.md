@@ -4,6 +4,63 @@
 
 Pi上では外部ストレージの `/mnt/data/pi_monitor` に配置します。
 
+## 作業引き継ぎ（AI・保守担当向け）
+
+このREADMEを作業の起点とします。ローカルの作業場所は
+`/mnt/d/workspace/dev/pi_monitor`、Pi側のリポジトリは
+`/mnt/data/pi_monitor`です。ローカルのリポジトリ直下からPiへ接続するには、
+次を実行します（親ディレクトリからなら鍵は`.ssh/codex-ai_SSHKEY`）。
+
+```bash
+ssh -i ../.ssh/codex-ai_SSHKEY root@192.168.100.201
+```
+
+| 対象 | 接続先・確認先 |
+| --- | --- |
+| Grafana | `http://192.168.100.201:3001/`。設定済みの管理者アカウントでログイン。LAN Mapは`/d/lan-map/lan-map`。 |
+| Prometheus | Pi上の`http://127.0.0.1:9090/`。手元のブラウザからは後述のSSHポート転送を使う。 |
+| Router | 管理IPは`192.168.100.1`。監視用の読み取り専用SSHアカウントとポートは`router-probe/config/probe.toml`を参照。 |
+| AP | AP1は`https://192.168.100.246/`、AP2は`https://192.168.100.247/`。クラスタ仮想IPは`192.168.100.245`。監視には読み取り専用Webアカウントを使用。 |
+
+Piへコードを反映する前にローカルの変更を確認し、通常のGit手順で同期します。
+Piでは`cd /mnt/data/pi_monitor && git pull --ff-only`を使います。
+Composeサービスの状態確認はPi側のリポジトリで`docker compose ps`、
+ログ確認は`docker compose logs --tail=100 <service>`、必要な場合の起動は
+`docker compose up -d`です。GrafanaのダッシュボードJSONは
+`services/grafana/dashboards/`にあり、読み取り専用でマウントされます。
+provisioningは約30秒ごとに更新を確認します。
+
+ホストの定期収集は`pi-wifi-probe`、`pi-ap-web-probe`、`pi-router-probe`、
+`pi-lan-map`、`pi-internet-speed-probe`、`pi-ssd-smart-probe`、
+`pi-throttling-probe`のsystemd timer/serviceで管理します。Pi上での確認・手動実行は次の通りです。
+
+```bash
+systemctl list-timers --all 'pi-*.timer'
+journalctl -u <name>.service -n 50 --no-pager
+systemctl start <name>.service
+```
+
+プローブの設定は各`*-probe/config/`と`lan-map/config/`にあります。
+systemd unitやtimerを変更した場合は、対応する`scripts/install-*.sh`をPiで実行して
+再導入します。導入スクリプトは稼働中のtimerを再起動します。
+Prometheusの収集間隔は`services/prometheus/prometheus.yml`、
+textfileの鮮度アラートは`services/prometheus/textfile-freshness.rules.yml`で管理します。
+Grafanaの`Probe Freshness`とPrometheusの`/alerts`で古いtextfileを確認できます。
+通知先は未設定です。LAN Mapの入力・履歴・表示は`docs/lan-map-design.md`、
+利用履歴の手動取込は`energy-import/README.md`を参照してください。
+
+資格情報、SSID、BSSID、MAC、実端末名はREADME・Git・ログに記録しません。
+Pi専用設定は`/mnt/data/pi_monitor/.config/`（ディレクトリ`0700`、秘密ファイル`0600`）に、
+測定結果と履歴は`/mnt/data/pi_monitor/data/`に置きます。Routerのパスワードは
+`.config/router_password.txt`、APのWeb認証情報は`.config/ap-web-probe.toml`、
+端末名対応表もPiの`.config/`だけに置きます。
+
+### 経過観察（2026-10-07時点）
+
+1. **回線速度:** 以前の毎時00分側の実行でOokla CLI終了コード2の失敗が偏っていました。10月3日から毎時12分・42分に変更し、最初の21:42実行は成功しました。数日分の`pi-internet-speed-probe.service`のjournalで失敗頻度を比較してください。旧時刻18:00の失敗では`Error: [101] Network unreachable`を記録しましたが、原因は未確定です。失敗時は速度値を書かず、Grafanaは直近35分の成功値を表示するため、グラフの線だけで成否を判断しないでください。
+2. **AP2 Web取得:** AP2ではブラウザログインやSelenium通信が不規則に失敗します。原因は未確定です。AP WebのjournalとLAN Mapの該当周期の`unavailable`表示を確認してください。接続端末0台が続く場合はAPページのレコード形式変更も調べてください。
+3. **次の利用履歴取込:** 取込途中の失敗で一部CSVだけが更新され、前回の成功メトリクスが残る可能性があります。次回の手動取込では終了コード、CSV、Grafanaダッシュボード、`energy-import.prom`の更新時刻を確認してください。
+
 ## 実装技術
 
 - Docker Compose: Gatus、Prometheus、node_exporter、Grafanaを運用
