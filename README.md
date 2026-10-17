@@ -29,6 +29,9 @@ Composeサービスの状態確認はPi側のリポジトリで`docker compose p
 `docker compose up -d`です。GrafanaのダッシュボードJSONは
 `services/grafana/dashboards/`にあり、読み取り専用でマウントされます。
 provisioningは約30秒ごとに更新を確認します。
+GrafanaコンテナはUTCで動作しており、コンテナ内で実行されるSQLiteの
+`datetime(..., 'localtime')` もUTCになります。JST表示が必要なテーブルでは、
+SQL側で明示的に変換してください（Internet SpeedのMeasurement historyは`+9 hours`）。
 
 ホストの定期収集は`pi-wifi-probe`、`pi-ap-web-probe`、`pi-router-probe`、
 `pi-lan-map`、`pi-internet-speed-probe`、`pi-ssd-smart-probe`、
